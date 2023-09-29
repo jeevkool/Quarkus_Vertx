@@ -1,0 +1,75 @@
+package org.kool;
+
+import java.nio.charset.StandardCharsets;
+
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
+import io.vertx.core.file.OpenOptions;
+import io.vertx.core.json.JsonArray;
+import io.vertx.mutiny.core.Vertx;
+import io.vertx.mutiny.core.eventbus.EventBus;
+import io.vertx.mutiny.ext.web.client.HttpResponse;
+import io.vertx.mutiny.ext.web.client.WebClient;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+
+@Path("/vertx")
+public class VertxResource {
+
+    private final Vertx vertx;
+    private final WebClient client;
+
+    @Inject
+    public VertxResource(Vertx vertx) {
+        this.vertx = vertx;
+        this.client = WebClient.create(vertx);
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String hello() {
+        return "Hello from RESTEasy Reactive";
+    }
+
+    @GET
+    @Path("/lorem")
+    public Uni<String> readShortFile() {
+        return vertx.fileSystem().readFile("lorem.txt")
+                .onItem().transform(content -> content.toString(StandardCharsets.UTF_8));
+    }
+
+    @GET
+    @Path("/book")
+    public Multi<String> readLargeFile() {
+        return vertx.fileSystem().open("book.txt",
+                new OpenOptions().setRead(true))
+                .onItem().transformToMulti(file -> file.toMulti())
+                .onItem().transform(content -> content.toString(StandardCharsets.UTF_8)
+                        + "\n ((================================)) \n");
+    }
+
+    @Inject
+    EventBus bus;
+
+    @GET
+    @Path("/hello")
+    public Uni<String> hello(@QueryParam("name") String name) {
+        return bus.<String>request("greetings", name)
+                .onItem().transform(response -> response.body());
+    }
+
+    private static final String URL = "https://en.wikipedia.org/w/api.php?action=parse&page=Quarkus&format=json&prop=langlinks";
+
+    @GET
+    @Path("/web")
+    public Uni<JsonArray> retrieveDataFromWikipedia() {
+        return client.getAbs(URL).send()
+                .onItem().transform(HttpResponse::bodyAsJsonObject)
+                .onItem().transform(json -> json.getJsonObject("parse")
+                        .getJsonArray("langlinks"));
+    }
+}
