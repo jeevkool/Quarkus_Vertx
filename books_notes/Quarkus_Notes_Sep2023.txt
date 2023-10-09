@@ -30,6 +30,9 @@ to see the output.
 ***=================================================================***
 ****=============== BUILDING Native Image =========================****
 
+===> Note: Make sure to open CMD "x64 Native Tools Command Prompt for VS 2022"  and NOT: "x64_x86 Cross Tools Command Prompt for VS 2022"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Ref: Steps here: https://access.redhat.com/documentation/en-us/red_hat_build_of_quarkus/quarkus-2-7/guide/f93c45bd-4feb-4f74-a70a-022e9fb41957#_7293eccb-e8ef-47f9-b8b3-b185e5af504b
 
 AND here: https://quarkus.io/guides/building-native-image
@@ -61,40 +64,48 @@ Vertx Building Verticles for EventBus: https://quarkus.io/guides/vertx-reference
 ====>> USING THE EVENT BUS  << ====================
 Ref: https://quarkus.io/guides/reactive-event-bus
 
+___________________________________
+Errors & Fixes:
+===================================
+1. When running the native exe, and trying http://localhost:8080/vertx/web API, it calls Wikipedia HTTPS url within the code.
+	It then gives the error: "{"exceptionType":"io.vertx.core.VertxException","code":500,"error":"java.net.MalformedURLException: Accessing a URL protocol that was not enabled. The URL protocol https is supported but not enabled by default. It must be enabled by adding the --enable-url-protocols=https option to the native-image command."}"
+
+	To fix this add the following property to application.properties 
+	quarkus.ssl.native=true     ==> and clean rebuild the native image using "mvnw clean install -Dnative"
 
 
-Error: "[ERROR] Unknown lifecycle phase ".native.container-build=true". You must specify a valid lifecycle phase or a goal "
-When running: ./mvnw package -Pnative -Dquarkus.native.container-build=true
-from the eBook "Kubernetes-native-microservices-ebook-v4.pdf" Book page 48 (pdf page 65).
+2. Error: "[ERROR] Unknown lifecycle phase ".native.container-build=true". You must specify a valid lifecycle phase or a goal "
+	When running: ./mvnw package -Pnative -Dquarkus.native.container-build=true
+	from the eBook "Kubernetes-native-microservices-ebook-v4.pdf" Book page 48 (pdf page 65).
 
 
-Install Docker, Run Docker daemon, install minikube, start minikube ($ minikube start) and then run the following:
-Solution: Run the following command instead:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-./mvnw package -Pnative --define quarkus.native.container-build=true --define quarkus.container-image.build=true
+	Install Docker, Run Docker daemon, install minikube, start minikube ($ minikube start) and then run the following:
+	Solution: Run the following command instead:
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	./mvnw package -Pnative --define quarkus.native.container-build=true --define quarkus.container-image.build=true
 
-If the above command is not run from "x64 Native Tools Command Prompt for VS 2022" OR Docker Daemon is not running: the following Error happens: 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[ERROR] Failed to execute goal io.quarkus.platform:quarkus-maven-plugin:3.3.2:build (default) on project quarkus-kool-vertx1: Failed to build quarkus application: io.quarkus.builder.BuildException: Build failure: 
-Build failed due to errors.
-[ERROR]         [error]: Build step io.quarkus.deployment.pkg.steps.NativeImageBuildStep#resolveNativeImageBuildRunner threw an exception: java.lang.IllegalStateException: 
-No container runtime was found. Make sure you have either Docker or Podman installed in your environment.
-
-
-==> Once the image is built successfully, run the following to Deploy to K8s:
-
-./mvnw package --define quarkus.kubernetes.deploy=true
+	If the above command is not run from "x64 Native Tools Command Prompt for VS 2022" OR Docker Daemon is not running: the following Error happens: 
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	[ERROR] Failed to execute goal io.quarkus.platform:quarkus-maven-plugin:3.3.2:build (default) on project quarkus-kool-vertx1: Failed to build quarkus application: io.quarkus.builder.BuildException: Build failure: 
+	Build failed due to errors.
+	[ERROR]         [error]: Build step io.quarkus.deployment.pkg.steps.NativeImageBuildStep#resolveNativeImageBuildRunner threw an exception: java.lang.IllegalStateException: 
+	No container runtime was found. Make sure you have either Docker or Podman installed in your environment.
 
 
-==> Once deployed sucessfully, as above, list minikube services to locate the newly deployed container instance, its URL and port:
+	==> Once the image is built successfully, run the following to Deploy to K8s:
 
-$ minikube service list
+	./mvnw package --define quarkus.kubernetes.deploy=true
 
-** ==>If the above did not display the service URL, then try giving the service name as below:
 
-$ minikube service account-vertx-service
+	==> Once deployed sucessfully, as above, list minikube services to locate the newly deployed container instance, its URL and port:
 
-==> This should list the URL and port.
+	$ minikube service list
+
+	** ==>If the above did not display the service URL, then try giving the service name as below:
+
+	$ minikube service account-vertx-service
+
+		==> This should list the URL and port.
 
 ALT: $ minikube service -all   ==> This lists the services and URLs. Output for the only service looks like this:
 |-----------|-----------------------|-------------|---------------------------|
@@ -103,8 +114,7 @@ ALT: $ minikube service -all   ==> This lists the services and URLs. Output for 
 | default   | account-vertx-service | http/80     | http://192.168.58.2:31878 |
 |-----------|-----------------------|-------------|---------------------------|
 
-
-9/29/2023 Error: Service is not accessible using curl or browser using the URL above: http://192.168.58.2:31878/vertx/hello?name=ABC fails!
+3. 9/29/2023 Error: Service is not accessible using curl or browser using the URL above: http://192.168.58.2:31878/vertx/hello?name=ABC fails!
 ===> To troubleshoot K8S and Minikube.
 
 NOTE 9/29/2023:
@@ -118,6 +128,8 @@ Note 2:
 Find out how to access Application log within the Minikube node and K8S cluster.
 Find out how to monitor the k8s cluster nodes status, and health.
 Find out how to test the K8S service end points.
+
+=============END of ERROR section ==================================================================
 
 
 ===============================================================================
