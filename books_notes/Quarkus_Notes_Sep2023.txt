@@ -70,6 +70,8 @@ Errors & Fixes:
 1. When running the native exe, and trying http://localhost:8080/vertx/web API, it calls Wikipedia HTTPS url within the code.
 	It then gives the error: "{"exceptionType":"io.vertx.core.VertxException","code":500,"error":"java.net.MalformedURLException: Accessing a URL protocol that was not enabled. The URL protocol https is supported but not enabled by default. It must be enabled by adding the --enable-url-protocols=https option to the native-image command."}"
 
+Solution REF: https://quarkus.io/guides/native-and-ssl
+Solution:
 	To fix this add the following property to application.properties 
 	quarkus.ssl.native=true     ==> and clean rebuild the native image using "mvnw clean install -Dnative"
 
