@@ -1,0 +1,165 @@
+0. Clear the local Maven reporitory cache by deleting contents of: C:\Users\rkool\.m2\repository
+AND  C:\Users\rkool\.m2\wrapper.
+
+1. Installed GraalVM latest version (OpenJDK 20 works as well) at D:\apps\GraalVM\graalvm-jdk-20.0.2.9.1 
+Set JAVA_HOME, and PATH variables to point to the install directoty and its bin folder.
+Set GRAALVM_HOME=D:\apps\GraalVM\graalvm-jdk-20.0.2.9.1
+
+2. Downloaded latest Maven dist, unzipped to D:\apps\apache\maven\apache-maven-3.9.4
+Added D:\apps\apache\maven\apache-maven-3.9.4\bin to the PATH.
+Set MVN_HOME to D:\apps\apache\maven\apache-maven-3.9.4
+
+3. Created a workspace directoty at D:\QuarkusSpace\second
+cd D:\QuarkusSpace\second
+
+4. Run the following command to Scaffold a starter App:
+
+mvn io.quarkus:quarkus-maven-plugin:3.3.1:create -DprojectGroupId=org.kool -DprojectArtifactId=second-app -DclassName="org.kool.second.SecondResource" -Dpath="/second"
+
+Note: Check for the latest version of the plugin io.quarkus:quarkus-maven-plugin:3.3.1 at the maven reporitory at: https://mvnrepository.com/artifact/io.quarkus/quarkus-maven-plugin   and update the above command in the future as necessary.
+
+
+5. cd D:\QuarkusSpace\second\second-app
+Run the command:  mvnw quarkus:dev
+
+6. Goto http://localhost:8080/second
+to see the output.
+
+7. Open VS Code, and open folder D:\QuarkusSpace\second\second-app to navigate and edit code.
+
+***=================================================================***
+****=============== BUILDING Native Image =========================****
+
+Ref: Steps here: https://access.redhat.com/documentation/en-us/red_hat_build_of_quarkus/quarkus-2-7/guide/f93c45bd-4feb-4f74-a70a-022e9fb41957#_7293eccb-e8ef-47f9-b8b3-b185e5af504b
+
+AND here: https://quarkus.io/guides/building-native-image
+
+Note: On Windows make sure the "C Development Environment" Visual Studio 2017 Visual C++ Build Tools is installed from here: https://aka.ms/vs/15/release/vs_buildtools.exe
+
+0. Install Visual Studio 2017 Visual C++ Build Tools is installed from here: https://aka.ms/vs/15/release/vs_buildtools.exe
+1. Update VS Build Tools to VS Build Tools 2022 (2).
+2. Make sure GRAALVM_HOME is set properly and JAVA_HOME is pointing to  GRAALVM_HOME
+3. Open x64 Native Tools Command Prompt for VS 2022 ==> Not the usual CMD prompt.
+4. CD to the app directory. cd D:\QuarkusSpace\second\second-app
+5. Run command:  mvnw install -Dnative    
+This builds the native image in the D:\QuarkusSpace\second\second-app\target directory.
+Note: This takes several minutes to builf the exe. Exe File built is: "second-app-1.0.0-SNAPSHOT-runner.exe"
+You can copy this file to any directory, and run on its own.
+
+
+
+***========RECIPE: USING VERT.X Reactive API FROM QUARKUS APPLICATION=======================***
+
+Note: Complete example App code demonstrates use of Streaming, Events/EventBus, and Non-blocking Vertx Web Client that sends a GET request to the Wikipedia API.
+
+Ref: USING ECLIPSE VERT.X Reactive API FROM A QUARKUS APPLICATION : https://quarkus.io/guides/vertx#:~:text=import%20jakarta.ws.rs.Path%3B%20%40Path%28%22%2Fvertx%22%29%20%281%29public%20class%20VertxResource%20%7B%20private,VertxResource%28Vertx%20vertx%29%20%7B%20%283%29this.vertx%20%3D%20vertx%3B%20%284%29%7D%20%7D
+
+
+Vertx Building Verticles for EventBus: https://quarkus.io/guides/vertx-reference
+
+*****=======================================================================================****
+====>> USING THE EVENT BUS  << ====================
+Ref: https://quarkus.io/guides/reactive-event-bus
+
+
+
+Error: "[ERROR] Unknown lifecycle phase ".native.container-build=true". You must specify a valid lifecycle phase or a goal "
+When running: ./mvnw package -Pnative -Dquarkus.native.container-build=true
+from the eBook "Kubernetes-native-microservices-ebook-v4.pdf" Book page 48 (pdf page 65).
+
+
+Install Docker, Run Docker daemon, install minikube, start minikube ($ minikube start) and then run the following:
+Solution: Run the following command instead:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./mvnw package -Pnative --define quarkus.native.container-build=true --define quarkus.container-image.build=true
+
+If the above command is not run from "x64 Native Tools Command Prompt for VS 2022" OR Docker Daemon is not running: the following Error happens: 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ERROR] Failed to execute goal io.quarkus.platform:quarkus-maven-plugin:3.3.2:build (default) on project quarkus-kool-vertx1: Failed to build quarkus application: io.quarkus.builder.BuildException: Build failure: 
+Build failed due to errors.
+[ERROR]         [error]: Build step io.quarkus.deployment.pkg.steps.NativeImageBuildStep#resolveNativeImageBuildRunner threw an exception: java.lang.IllegalStateException: 
+No container runtime was found. Make sure you have either Docker or Podman installed in your environment.
+
+
+==> Once the image is built successfully, run the following to Deploy to K8s:
+
+./mvnw package --define quarkus.kubernetes.deploy=true
+
+
+==> Once deployed sucessfully, as above, list minikube services to locate the newly deployed container instance, its URL and port:
+
+$ minikube service list
+
+** ==>If the above did not display the service URL, then try giving the service name as below:
+
+$ minikube service account-vertx-service
+
+==> This should list the URL and port.
+
+ALT: $ minikube service -all   ==> This lists the services and URLs. Output for the only service looks like this:
+|-----------|-----------------------|-------------|---------------------------|
+| NAMESPACE |         NAME          | TARGET PORT |            URL            |
+|-----------|-----------------------|-------------|---------------------------|
+| default   | account-vertx-service | http/80     | http://192.168.58.2:31878 |
+|-----------|-----------------------|-------------|---------------------------|
+
+
+9/29/2023 Error: Service is not accessible using curl or browser using the URL above: http://192.168.58.2:31878/vertx/hello?name=ABC fails!
+===> To troubleshoot K8S and Minikube.
+
+NOTE 9/29/2023:
+~~~~~
+Try running  eval $(minikube -p minikube docker-env)  OR   $ minikube -p minikube docker-env in the command shell AFTER running $ minikube start.
+Then run the $ ./mvnw package -Pnative --define quarkus.native.container-build=true --define quarkus.container-image.build=true
+and THEN the $ ./mvnw package --define quarkus.kubernetes.deploy=true
+
+Note 2: 
+~~~~~~~
+Find out how to access Application log within the Minikube node and K8S cluster.
+Find out how to monitor the k8s cluster nodes status, and health.
+Find out how to test the K8S service end points.
+
+
+===============================================================================
+Minikube commands to use:
+===============================================================================
+1. To start the Minikube node:
+
+	$ minikube start
+
+Note: Do this after starting Docker daemon on Windows.
+
+2. To start the miikube K8S dashboard:
+
+	$ minikube dashboard
+
+3. To list services with their URL and port:
+
+	$ minikube service --all
+
+4. To list a specific service by name:
+
+	$ minikube service <service-name>
+
+Example: $ minikube service account-vertx-service
+
+5. To stop minikube:
+
+	$ minikube stop
+
+
+===============================================================================
+
+Installing Minikube:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ref 1: https://minikube.sigs.k8s.io/docs/start/
+
+Ref 2: https://medium.com/@mananu/run-a-kubernetes-cluster-locally-on-windows-c15e685113bb
+
+Ref 3: https://www.geeksforgeeks.org/how-to-set-up-kubernetes-cluster-on-local-machine-using-minikube/
+
+***===> Running Multi-Node K8S clusters locally using Kind:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Ref 4: https://opensource.com/article/20/11/run-kubernetes-locally
+
