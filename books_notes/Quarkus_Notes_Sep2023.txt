@@ -39,8 +39,7 @@ AND here: https://quarkus.io/guides/building-native-image
 
 Note: On Windows make sure the "C Development Environment" Visual Studio 2017 Visual C++ Build Tools is installed from here: https://aka.ms/vs/15/release/vs_buildtools.exe
 
-0. Install Visual Studio 2017 Visual C++ Build Tools is installed from here: https://aka.ms/vs/15/release/vs_buildtools.exe
-1. Update VS Build Tools to VS Build Tools 2022 (2).
+1.Install Visual Studio 2022 Build Tools.
 2. Make sure GRAALVM_HOME is set properly and JAVA_HOME is pointing to  GRAALVM_HOME
 3. Open x64 Native Tools Command Prompt for VS 2022 ==> Not the usual CMD prompt.
 4. CD to the app directory. cd D:\QuarkusSpace\second\second-app
@@ -67,6 +66,29 @@ Ref: https://quarkus.io/guides/reactive-event-bus
 ___________________________________
 Errors & Fixes:
 ===================================
+0. So many Errors and failures due to ZScaler client blocking, when code tries to connect over SSL, and K8S tries to connect to repositories over SSL etc.
+
+Solution REF 1: https://www.reddit.com/r/techsupport/comments/xm2jng/comment/ivflauk/
+
+Solution REF 2: https://stackoverflow.com/questions/75875351/zscaler-cannot-stop-the-service-without-passwords
+
+Solution:
+~~~~~~~~~~
+If you have admin rights, you can disable it under Powershell.
+
+List the status:
+Get-NetAdapterBinding -AllBindings -ComponentID ZS_ZAPPRD
+
+Disable:
+Get-NetAdapterBinding -AllBindings -ComponentID ZS_ZAPPRD | Disable-NetAdapterBinding
+
+Enable:
+Get-NetAdapterBinding -AllBindings -ComponentID ZS_ZAPPRD | Enable-NetAdapterBinding
+
+
+
+
+
 1. When running the native exe, and trying http://localhost:8080/vertx/web API, it calls Wikipedia HTTPS url within the code.
 	It then gives the error: "{"exceptionType":"io.vertx.core.VertxException","code":500,"error":"java.net.MalformedURLException: Accessing a URL protocol that was not enabled. The URL protocol https is supported but not enabled by default. It must be enabled by adding the --enable-url-protocols=https option to the native-image command."}"
 
@@ -161,7 +183,16 @@ Example: $ minikube service account-vertx-service
 
 	$ minikube stop
 
+6. To delete a deployment:
+	$ kubectl delete -n default deployment account-vertx-service
 
+7. To delete a service:
+	$ kubectl delete services account-vertx-service
+
+8. Start Minikube with 
+
+	$ minikube start --insecure-registry "192.168.65.0/24"    ==> This IP/Port can be obtained from Docker desktop menu: /settings//Resources//Network 
+	$ minikube addons enable metrics-server  ==> ONLY need to run once. To enable metrics server.
 ===============================================================================
 
 Installing Minikube:
