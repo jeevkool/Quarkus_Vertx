@@ -166,6 +166,9 @@ Ref 2: https://learnk8s.io/blog/scaling-spring-boot-microservices
 Spring Boot Maven K8S example:
 Ref 3: https://faun.pub/deploying-spring-boot-application-on-kubernetes-using-kubernetes-maven-plugin-46caf22b03a5
 
+Quarkus Maven K8S example:
+Ref 4: https://redhat-developer-demos.github.io/quarkus-tutorial/quarkus-tutorial/kubernetes.html
+
 
 ===============================================================================
 Minikube commands to use:
