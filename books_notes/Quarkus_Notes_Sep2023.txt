@@ -156,9 +156,11 @@ Find out how to test the K8S service end points.
 =============END of ERROR section ==================================================================
 
 ===============================================================================
-Docker Basics & Commands:
+Docker & Kubernetes Basics & Commands with Spring Boot Example App:
 ===============================================================================
-Ref: https://learnk8s.io/spring-boot-kubernetes-guide
+Ref 1: https://learnk8s.io/spring-boot-kubernetes-guide
+
+Ref 2: https://learnk8s.io/blog/scaling-spring-boot-microservices
 
 ===============================================================================
 Minikube commands to use:
