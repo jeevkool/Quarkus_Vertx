@@ -160,6 +160,7 @@ Docker & Kubernetes Basics & Commands with Spring Boot Example App:
 ===============================================================================
 Ref 1: https://learnk8s.io/spring-boot-kubernetes-guide
 
+AutoScalng K8S clusters:
 Ref 2: https://learnk8s.io/blog/scaling-spring-boot-microservices
 
 ===============================================================================
