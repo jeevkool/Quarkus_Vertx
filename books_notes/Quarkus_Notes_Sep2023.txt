@@ -226,3 +226,9 @@ Ref 3: https://www.geeksforgeeks.org/how-to-set-up-kubernetes-cluster-on-local-m
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Ref 4: https://opensource.com/article/20/11/run-kubernetes-locally
 
+========================================
+Quarkus Tutorials:
+========================================
+
+1. https://medium.com/@changeant/containerizing-your-microservice-in-quarkus-with-jib-fae0f62bd57e
+
