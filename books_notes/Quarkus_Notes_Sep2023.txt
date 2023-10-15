@@ -147,6 +147,10 @@ Try running  eval $(minikube -p minikube docker-env)  OR   $ minikube -p minikub
 Then run the $ ./mvnw package -Pnative --define quarkus.native.container-build=true --define quarkus.container-image.build=true
 and THEN the $ ./mvnw package --define quarkus.kubernetes.deploy=true
 
+To push to Docker Hub:
+docker login (this logs into Docker Hub. Login rkoolath/koolath123)
+mvnw clean quarkus:build -Pnative -DskipTests --define "quarkus.container-image.push=true" --define "quarkus.container-image.builder=jib" --define quarkus.native.container-build=true --define quarkus.container-image.build=true
+
 Note 2: 
 ~~~~~~~
 Find out how to access Application log within the Minikube node and K8S cluster.
