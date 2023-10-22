@@ -115,10 +115,24 @@ Solution:
 	[ERROR]         [error]: Build step io.quarkus.deployment.pkg.steps.NativeImageBuildStep#resolveNativeImageBuildRunner threw an exception: java.lang.IllegalStateException: 
 	No container runtime was found. Make sure you have either Docker or Podman installed in your environment.
 
+Do the following on Ubuntu for microk8s at the same bash terminal, before running the /mvnw package --define quarkus.kubernetes.deploy=true  to deploy.
+ 
+export KUBERNETES_MASTER=127.0.0.1:16443
+export KUBERNETES_NAMESPACE=default
 
 	==> Once the image is built successfully, run the following to Deploy to K8s:
 
 	./mvnw package --define quarkus.kubernetes.deploy=true
+
+	./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true -Dquarkus.container-image.registry=registry.hub.docker.com 
+
+Ubuntu with microk8s: API Server URL:
+127.0.0.1:16443
+
+10.152.183.1:443
+
+
+./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
 
 
 	==> Once deployed sucessfully, as above, list minikube services to locate the newly deployed container instance, its URL and port:
@@ -147,29 +161,6 @@ Try running  eval $(minikube -p minikube docker-env)  OR   $ minikube -p minikub
 Then run the $ ./mvnw package -Pnative --define quarkus.native.container-build=true --define quarkus.container-image.build=true
 and THEN the $ ./mvnw package --define quarkus.kubernetes.deploy=true
 
-To push to Docker Hub:
-docker login (this logs into Docker Hub. Login rkoolath/koolath123)
-mvnw clean quarkus:build -Pnative -DskipTests --define "quarkus.container-image.push=true" --define "quarkus.container-image.builder=jib" --define quarkus.native.container-build=true --define quarkus.container-image.build=true
-
-mvnw clean quarkus:build -DskipTests --define "quarkus.container-image.push=true" --define quarkus.container-image.build=true -Dquarkus.jib.base-registry-username=rkoolath -Dquarkus.jib.base-registry-password=koolath123
-
-mvn clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.registry=registry.hub.docker.com -Dquarkus.jib.base-registry-username=rkoolath -Dquarkus.jib.base-registry-password=koolath123
-
-mvn clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.registry=registry.hub.docker.com 
-
-===============
-ERROR: 10/15/2023
-==================
-All of the above fails with "com.google.cloud.tools.jib.api.RegistryUnauthorizedException: Unauthorized for registry.hub.docker.com/quarkus-mp/account-vertx-service
-com.google.cloud.tools.jib.http.ResponseException: 401 Unauthorized
-
-"
-
-Try: mvn package -D jib.to.auth.username=rkoolath -Djib.to.auth.password=koolath123
-
-
-
-
 Note 2: 
 ~~~~~~~
 Find out how to access Application log within the Minikube node and K8S cluster.
@@ -178,19 +169,178 @@ Find out how to test the K8S service end points.
 
 =============END of ERROR section ==================================================================
 
-===============================================================================
-Docker & Kubernetes Basics & Commands with Spring Boot Example App:
-===============================================================================
-Ref 1: https://learnk8s.io/spring-boot-kubernetes-guide
 
-AutoScalng K8S clusters:
-Ref 2: https://learnk8s.io/blog/scaling-spring-boot-microservices
 
-Spring Boot Maven K8S example:
-Ref 3: https://faun.pub/deploying-spring-boot-application-on-kubernetes-using-kubernetes-maven-plugin-46caf22b03a5
 
-Quarkus Maven K8S example:
-Ref 4: https://redhat-developer-demos.github.io/quarkus-tutorial/quarkus-tutorial/kubernetes.html
+=======================================================================================================
+Microk8s: 22-Oct-2023: Deployed and tested successfully With Microk8s Kubernetes container on Ubuntu
+=======================================================================================================
+
+Step 0: First installed Docker on Ubuntu: Ref: https://www.simplilearn.com/tutorials/docker-tutorial/how-to-install-docker-on-ubuntu
+
+IGNORE other steps/commands in the above article, like uninstall first, using snap etc. ONLY the below steps/commands are necessary:
+
+$ sudo apt-get update
+$ sudo apt install docker.io
+
+Verify using:
+$ docker --version
+AND
+$ sudo docker run hello-world
+
+To display all the containers pulled, use the following command:
+$ sudo docker ps -a
+
+IMPORTANT: To be able to Execute the Docker Command Without Sudo: 
+First, establish the Docker Group:
+
+$ sudo groupadd docker
+
+Next, add the user in the Docker group:
+
+$ sudo usermod -aG docker $USER
+
+NEXT : Reboot Ubuntu for the above changes to take effect!!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+
+
+STEP 1. Install Microk8s locally:  https://ubuntu.com/tutorials/install-a-local-kubernetes-with-microk8s#1-overview
+
+NOTE: After installing enable the essential add ons, as follows:
+
+$ microk8s enable dns 
+$ microk8s enable dashboard
+$ microk8s enable storage
+
+Copied the default config file Microk8s creates at /var/snap/microk8s/current/credentials/client.config  to  ~/.kube/config  as follows:
+$ sudo cp /var/snap/microk8s/current/credentials/client.config ~/.kube/config
+
+	NOTE: This file has the Kubernetes API server URL as: https://127.0.0.1:16443
+
+STEP 2: To Stop and Start Microk8s:
+
+$ microk8s stop
+$ microk8s start
+
+
+
+STEP 3: To start the Microk8s Dashboard: 
+
+$ microk8s dashboard-proxy      ==> Note the Dashboard URL and token to login displayed when this command is run.
+
+
+2. After successfully deploying to Kubernetes cluster, did the following to get host:port to test the service:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DEPLOYMENT Config 1: service-type=node-port  &&  ingress.expose=true ==> With config properties in application.properties as:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	quarkus.kubernetes.namespace=vertxdev   ==> Necessary to specify the namespace. (First create one using: $ kubectl create namespace vertxdev )
+
+	quarkus.knative.image-pull-policy=if-not-present
+	quarkus.kubernetes.service-type=node-port
+	quarkus.kubernetes.ingress.expose=true
+	quarkus.container-image.insecure=true  ==> Necessary for registry that is not secured with a login or token.
+
+
+	After successfully deploying to Kubernetes cluster as above: Listed all currently running pods, services etc using the command:
+
+	$ microk8s kubectl get all --all-namespaces 
+
+	It listed services and among that was the App/service:
+
+	NAMESPACE            NAME                                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+	vertxdev             service/account-vertx-service       NodePort    10.152.183.143   <none>        80:31373/TCP             17m
+
+	From that the external port (exposed port) is 31373
+
+	So accessed and tested successfully using  http://10.152.183.143:31373/vertx/hello?name=qqq
+	AND 
+	http://127.0.0.1:31373/vertx/hello?name=SSS
+
+	AND
+	http://localhost:31373/vertx/hello?name=SSS
+
+
+	Also worked:  http://192.168.0.38:31373/vertx/hello?name=WWW
+	Where the IP address is the wlan IP of the computer found using ifconfig
+
+	Also worked:  http://10.1.176.40:8080/vertx/hello?name=AAA
+
+	Where the IP address is obtained from Microk8s Dashboard at https://127.0.0.1:10443/   (run using  $ microk8s dashboard-proxy)
+	Go to Services on the left side menu, THEN click on account-vertx-service  AND then look in the  "Endpoints" section to see the following:
+
+	Host			Ports (Name, Port, Protocol)		Node					Ready
+	10.1.176.40		http,8080,TCP						rajeev-latitude-e7450	true
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DEPLOYMENT Config 2: service-type=cluster-ip  &&  ingress.expose=true
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 	quarkus.kubernetes.namespace=vertxdev   ==> Necessary to specify the namespace. (First create one using: $ kubectl create namespace vertxdev )
+
+	quarkus.knative.image-pull-policy=if-not-present
+	quarkus.kubernetes.service-type=cluster-ip		==> This is the default option even if not specified.
+	quarkus.kubernetes.ingress.expose=true
+	quarkus.container-image.insecure=true  ==> Necessary for registry that is not secured with a login or token.
+
+	After successfully deploying to Kubernetes cluster as above: Listed all currently running pods, services etc using the command:
+
+	$ microk8s kubectl get all --all-namespaces  Lists the service as follows:
+
+
+	NAMESPACE            NAME                                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+	vertxdev             service/account-vertx-service       ClusterIP   10.152.183.170   <none>        80/TCP                   6m9s
+
+
+	So accessed and tested successfully using ClusterIP  http://10.152.183.170/vertx/hello?name=qqq
+
+	Also: 
+	From Dashboard at http://127.0.0.1:10443/  Go to Services on the left side menu, THEN click on account-vertx-service  AND then look in the  "Endpoints" section to see the following:
+
+
+	Host				Ports (Name, Port, Protocol)		Node				Ready
+	10.1.176.45			http,8080,TCP					rajeev-latitude-e7450	true
+
+	So the URL: http://10.1.176.45:8080/vertx/hello?name=qqq   also works.
+
+
+NOTE ** ==>> IMPORTANT distinction from Deployment Config 1: With quarkus.kubernetes.service-type=cluster-ip  (vs node-port) the endpoint is not exposed or available on any of the external host Ip addresses 
+	like the localhost/127.0.0.1/192.168.0.38 etc on any ports.
+
+
+
+Kubectl commsnds ref:
+============================
+
+Ref: Kubectl cheatsheet:  https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
+
+1. List all namespaces:
+	kubectl get namespaces
+
+2. To create a new namespace called 'vertxdev'
+	kubectl create namespace vertxdev
+
+Ref: https://kodekloud.com/blog/kubectl-create-namespace/
+
+3. 
+microk8s kubectl get all --all-namespaces
+
+
+
+
+
+
+
+
+
+
 
 
 ===============================================================================
@@ -244,10 +394,4 @@ Ref 3: https://www.geeksforgeeks.org/how-to-set-up-kubernetes-cluster-on-local-m
 ***===> Running Multi-Node K8S clusters locally using Kind:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Ref 4: https://opensource.com/article/20/11/run-kubernetes-locally
-
-========================================
-Quarkus Tutorials:
-========================================
-
-1. https://medium.com/@changeant/containerizing-your-microservice-in-quarkus-with-jib-fae0f62bd57e
 
