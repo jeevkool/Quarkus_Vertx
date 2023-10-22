@@ -73,9 +73,11 @@
  <artifactId>quarkus-minikube</artifactId>
 </dependency>
 <dependency>
- <groupId>io.quarkus</groupId>
- <artifactId>quarkus-container-image-jib</artifactId>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-container-image-jib</artifactId>
+    <version>3.5.0.CR1</version>
 </dependency>
+
   </dependencies>
   <build>
     <plugins>

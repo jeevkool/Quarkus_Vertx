@@ -151,6 +151,25 @@ To push to Docker Hub:
 docker login (this logs into Docker Hub. Login rkoolath/koolath123)
 mvnw clean quarkus:build -Pnative -DskipTests --define "quarkus.container-image.push=true" --define "quarkus.container-image.builder=jib" --define quarkus.native.container-build=true --define quarkus.container-image.build=true
 
+mvnw clean quarkus:build -DskipTests --define "quarkus.container-image.push=true" --define quarkus.container-image.build=true -Dquarkus.jib.base-registry-username=rkoolath -Dquarkus.jib.base-registry-password=koolath123
+
+mvn clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.registry=registry.hub.docker.com -Dquarkus.jib.base-registry-username=rkoolath -Dquarkus.jib.base-registry-password=koolath123
+
+mvn clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.container-image.registry=registry.hub.docker.com 
+
+===============
+ERROR: 10/15/2023
+==================
+All of the above fails with "com.google.cloud.tools.jib.api.RegistryUnauthorizedException: Unauthorized for registry.hub.docker.com/quarkus-mp/account-vertx-service
+com.google.cloud.tools.jib.http.ResponseException: 401 Unauthorized
+
+"
+
+Try: mvn package -D jib.to.auth.username=rkoolath -Djib.to.auth.password=koolath123
+
+
+
+
 Note 2: 
 ~~~~~~~
 Find out how to access Application log within the Minikube node and K8S cluster.
