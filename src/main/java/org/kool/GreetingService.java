@@ -9,6 +9,6 @@ public class GreetingService {
 
     @ConsumeEvent("greetings")              
     public String hello(String name) {      
-        return "Hello " + name;             
+        return "Hello GOOD MORNING " + name;             
     }
 }
