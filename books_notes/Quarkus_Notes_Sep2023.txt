@@ -86,6 +86,11 @@ Enable:
 Get-NetAdapterBinding -AllBindings -ComponentID ZS_ZAPPRD | Enable-NetAdapterBinding
 
 
+WSL Enable Windows Firewall:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+New-NetFirewallRule -DisplayName "WSL" -Direction Inbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+New-NetFirewallRule -DisplayName "WSL" -Direction Outbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
 
 
 
