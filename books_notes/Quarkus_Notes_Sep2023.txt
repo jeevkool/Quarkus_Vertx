@@ -221,6 +221,8 @@ $ sudo cp /var/snap/microk8s/current/credentials/client.config ~/.kube/config
 
 	NOTE: This file has the Kubernetes API server URL as: https://127.0.0.1:16443
 
+REF: https://discuss.kubernetes.io/t/where-does-microk8s-store-kubectl-config-file/11032 (for the above)
+
 STEP 2: To Stop and Start Microk8s:
 
 $ microk8s stop
@@ -232,11 +234,13 @@ STEP 3: To start the Microk8s Dashboard:
 
 $ microk8s dashboard-proxy      ==> Note the Dashboard URL and token to login displayed when this command is run.
 
+REF (for the above) : https://askubuntu.com/questions/1123996/how-to-access-micro8kss-dashboard-web-ui
+
 
 2. After successfully deploying to Kubernetes cluster, did the following to get host:port to test the service:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-DEPLOYMENT Config 1: service-type=node-port  &&  ingress.expose=true ==> With config properties in application.properties as:
+DEPLOYMENT Config 1 (JVM image, not -Dnative): service-type=node-port  &&  ingress.expose=true ==> With config properties in application.properties as:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	quarkus.kubernetes.namespace=vertxdev   ==> Necessary to specify the namespace. (First create one using: $ kubectl create namespace vertxdev )
@@ -246,10 +250,12 @@ DEPLOYMENT Config 1: service-type=node-port  &&  ingress.expose=true ==> With co
 	quarkus.kubernetes.ingress.expose=true
 	quarkus.container-image.insecure=true  ==> Necessary for registry that is not secured with a login or token.
 
+$ ./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
+
 
 	After successfully deploying to Kubernetes cluster as above: Listed all currently running pods, services etc using the command:
 
-	$ microk8s kubectl get all --all-namespaces 
+	$ microk8s kubectl get all --all-namespaces
 
 	It listed services and among that was the App/service:
 
@@ -279,7 +285,7 @@ DEPLOYMENT Config 1: service-type=node-port  &&  ingress.expose=true ==> With co
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-DEPLOYMENT Config 2: service-type=cluster-ip  &&  ingress.expose=true
+DEPLOYMENT Config 2 (JVM image not -Dnative): service-type=cluster-ip  &&  ingress.expose=true
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  	quarkus.kubernetes.namespace=vertxdev   ==> Necessary to specify the namespace. (First create one using: $ kubectl create namespace vertxdev )
@@ -288,6 +294,8 @@ DEPLOYMENT Config 2: service-type=cluster-ip  &&  ingress.expose=true
 	quarkus.kubernetes.service-type=cluster-ip		==> This is the default option even if not specified.
 	quarkus.kubernetes.ingress.expose=true
 	quarkus.container-image.insecure=true  ==> Necessary for registry that is not secured with a login or token.
+
+./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
 
 	After successfully deploying to Kubernetes cluster as above: Listed all currently running pods, services etc using the command:
 
@@ -313,6 +321,66 @@ DEPLOYMENT Config 2: service-type=cluster-ip  &&  ingress.expose=true
 NOTE ** ==>> IMPORTANT distinction from Deployment Config 1: With quarkus.kubernetes.service-type=cluster-ip  (vs node-port) the endpoint is not exposed or available on any of the external host Ip addresses 
 	like the localhost/127.0.0.1/192.168.0.38 etc on any ports.
 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DEPLOYMENT Config 3 (Native image with -Dnative option): service-type=cluster-ip  &&  ingress.expose=true. 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTE: It uses: FROM registry.access.redhat.com/ubi9/ubi-minimal:9.2  in src/main/docker/Dockerfile.native
+
+It uses the following changes in pom.xml:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	<compiler-plugin.version>3.11.0</compiler-plugin.version>
+	<maven.compiler.release>21</maven.compiler.release> <<== JDK 21
+	<quarkus.platform.version>3.5.0.CR1</quarkus.platform.version> <<== Latest Quarkus version as of 22-Oct-2023
+
+Commented out Minikube and Jib as follows:
+	<!--
+	<dependency>
+	<groupId>io.quarkus</groupId>
+	<artifactId>quarkus-minikube</artifactId>
+	</dependency>
+	-->
+	<!-- 
+	<dependency>
+	<groupId>io.quarkus</groupId>
+	<artifactId>quarkus-container-image-jib</artifactId>
+	</dependency>
+	-->
+Added docker as continer image builder (vs. jib):
+	<dependency>
+	<groupId>io.quarkus</groupId>
+	<artifactId>quarkus-container-image-docker</artifactId>
+	</dependency>
+
+
+	Run the build & deploy using:
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	./mvnw clean package -Dnative -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
+
+	URL 1:
+	Everything else works and tested as before in DEPLOYMENT Config 2.
+	$ microk8s kubectl get all --all-namespaces  ==> Listed the cluster IP and port to get the URL to the service.
+
+	URL 2: Ran the Microk8s proxy, as before, to get the  "Endpoints" section, and the IP and port 8080 from there. 
+	$ microk8s dashboard-proxy
+	URL tested: http://10.1.176.55:8080/vertx/hello?name=sss
+
+~~~~~~~~~~~~~~~~~~~~~
+IMPORTANT take away 1: ONLY Deployment config 1 (with quarkus.kubernetes.service-type=node-port & quarkus.kubernetes.ingress.expose=true) gives \
+the service endpoint on localhost/127.0.0.1 and its public/wlan IP address.
+~~~~~~~~~~~~~~~~~~~~~~
+
+~~~~~~~~~~~~~~~~~~~~~
+IMPORTANT take away 2: If JDK 21 is used in pom.xml (with option  <maven.compiler.release>21</maven.compiler.release>) then JVM image (Non-native) depoyments \
+to Kubernetes fails. This is because all the compilation/build are done using JDK 21 and the "FROM registry.access.redhat.com/ubi8/openjdk-17:1.16" image used \ 
+in src/main/docker/Dockerfile.jvm && src/main/docker/Dockerfile.legacy.jar has older JDK 17.
+There is no image with JVM 21 available yet (as of 22-Oct-2023)
+~~~~~~~~~~~~~~~~~~~~~~
+
+~~~~~~~~~~~~~~~~~~~~~
+IMPORTANT take away 3: Use of JDK 21 with <maven.compiler.release>21</maven.compiler.release> works fine for native image deployments to Kubernetes/Microk8s \
+because the linux ntive image is first built using GraalVM 21 and then deployed to image: FROM registry.access.redhat.com/ubi9/ubi-minimal:9.2  \
+in src/main/docker/Dockerfile.native
 
 
 Kubectl commsnds ref:
