@@ -176,7 +176,62 @@ Find out how to test the K8S service end points.
 Microk8s: 22-Oct-2023: Deployed and tested successfully With Microk8s Kubernetes container on Ubuntu
 =======================================================================================================
 
-Step 0: First installed Docker on Ubuntu: Ref: https://www.simplilearn.com/tutorials/docker-tutorial/how-to-install-docker-on-ubuntu
+Step 0: Install GraalVM/JDK and BuildEssentials/GCC etc on Ubuntu:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install JDK on Ubuntu:
+Download tar.gz from https://download.oracle.com/graalvm/21/latest/graalvm-jdk-21_linux-x64_bin.tar.gz
+Ref: https://stackoverflow.com/questions/14931932/whats-the-correct-way-of-installing-jdk-on-linux
+
+Copy the tar.gz to /usr/lib/jvm/
+$ sudo mkdir /usr/lib/jvm  ==> if necessary
+$ sudo cp ~/Downloads/graalvm-jdk-21_linux-x64_bin.tar.gz /usr/lib/jvm
+
+Extract jar.gz:
+$ cd /usr/lib/jvm/
+$ sudo tar -xzf ./graalvm-jdk-21_linux-x64_bin.tar.gz
+$ sudo chmod -R a+rx ./graalvm-jdk-21.0.1+12.1
+
+Set environment variables ==> Needs Ubuntu restart to take effect.
+$  sudo nano /etc/environment
+Add "/usr/lib/jvm/graalvm-jdk-21.0.1+12.1/bin" to PATH
+Define JAVA_HOME="/usr/lib/jvm/graalvm-jdk-21.0.1+12.1"
+
+$ source /etc/environment   ==> to take effect immediately without restarting.
+NOTE: This is not taking effect after logout/login.
+
+Update /etc/profile with the following towards the end of the file:
+
+$ sudo nano /etc/profile
+
+
+export JAVA_HOME="/usr/lib/jvm/graalvm-jdk-21.0.1+12.1"
+export GRAALVM_HOME="/usr/lib/jvm/graalvm-jdk-21.0.1+12.1"
+export PATH=$JAVA_HOME/bin:$PATH
+
+$ sudo source /etc/profile
+
+Error when running  $ ./mvnw clean package -Pnative   to build native image:
+ "Error: Default native-compiler executable 'gcc' not found via environment variable PATH"
+
+FIX on Ubuntu:  run $ apt-get install build-essential
+
+Error again: 
+ " libz:.a is missing. Please install it"  AND
+ "/usr/bin/ld: cannot find -lz: No such file or directory"
+
+To fix:  $ sudo apt install zlib1g-dev
+REF: https://github.com/oracle/graal/issues/2727
+
+Also did: 
+$ apt-get install gcc-multilib
+
+REF: https://stackoverflow.com/questions/61725948/how-to-solve-error-message-gcc-command-not-found-only-with-arguments-on-ub
+
+=================================== END of Install GraalVM/JDK=========================
+
+
+Step 1: Then installed Docker on Ubuntu: Ref: https://www.simplilearn.com/tutorials/docker-tutorial/how-to-install-docker-on-ubuntu
 
 IGNORE other steps/commands in the above article, like uninstall first, using snap etc. ONLY the below steps/commands are necessary:
 
@@ -204,15 +259,19 @@ NEXT : Reboot Ubuntu for the above changes to take effect!!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+STEP 2. Install Microk8s locally:  https://ubuntu.com/tutorials/install-a-local-kubernetes-with-microk8s#1-overview
 
+$ sudo snap install microk8s --classic
 
+AND THEN configure firewall to allow pod-to-pod and pod-to-internet communication::
 
-
-STEP 1. Install Microk8s locally:  https://ubuntu.com/tutorials/install-a-local-kubernetes-with-microk8s#1-overview
+	$ sudo ufw allow in on cni0 && sudo ufw allow out on cni0
+	$ sudo ufw default allow routed
 
 NOTE: After installing enable the essential add ons, as follows:
 
-$ microk8s enable dns 
+$ microk8s enable registry
+$ microk8s enable dns
 $ microk8s enable dashboard
 $ microk8s enable storage
 
@@ -223,14 +282,14 @@ $ sudo cp /var/snap/microk8s/current/credentials/client.config ~/.kube/config
 
 REF: https://discuss.kubernetes.io/t/where-does-microk8s-store-kubectl-config-file/11032 (for the above)
 
-STEP 2: To Stop and Start Microk8s:
+
+STEP 3: To Stop and Start Microk8s:
 
 $ microk8s stop
 $ microk8s start
 
 
-
-STEP 3: To start the Microk8s Dashboard: 
+STEP 4: To start the Microk8s Dashboard: 
 
 $ microk8s dashboard-proxy      ==> Note the Dashboard URL and token to login displayed when this command is run.
 
