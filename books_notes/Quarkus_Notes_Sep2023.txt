@@ -92,6 +92,10 @@ WSL Enable Windows Firewall:
 New-NetFirewallRule -DisplayName "WSL" -Direction Inbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
 New-NetFirewallRule -DisplayName "WSL" -Direction Outbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
 
+New-NetFirewallRule -DisplayName "WSL by interface" -Direction Inbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+
+New-NetFirewallRule -DisplayName "WSL by interface" -Direction Outbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+
 
 
 1. When running the native exe, and trying http://localhost:8080/vertx/web API, it calls Wikipedia HTTPS url within the code.
