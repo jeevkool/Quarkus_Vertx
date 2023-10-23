@@ -365,22 +365,26 @@ Added docker as continer image builder (vs. jib):
 	$ microk8s dashboard-proxy
 	URL tested: http://10.1.176.55:8080/vertx/hello?name=sss
 
-~~~~~~~~~~~~~~~~~~~~~
-IMPORTANT take away 1: ONLY Deployment config 1 (with quarkus.kubernetes.service-type=node-port & quarkus.kubernetes.ingress.expose=true) gives \
-the service endpoint on localhost/127.0.0.1 and its public/wlan IP address.
-~~~~~~~~~~~~~~~~~~~~~~
 
-~~~~~~~~~~~~~~~~~~~~~
-IMPORTANT take away 2: If JDK 21 is used in pom.xml (with option  <maven.compiler.release>21</maven.compiler.release>) then JVM image (Non-native) depoyments \
-to Kubernetes fails. This is because all the compilation/build are done using JDK 21 and the "FROM registry.access.redhat.com/ubi8/openjdk-17:1.16" image used \ 
-in src/main/docker/Dockerfile.jvm && src/main/docker/Dockerfile.legacy.jar has older JDK 17.
-There is no image with JVM 21 available yet (as of 22-Oct-2023)
-~~~~~~~~~~~~~~~~~~~~~~
+		~~~~~~~~~~~~~~~~~~~~~
+		IMPORTANT take away 1: ONLY Deployment config 1 (with quarkus.kubernetes.service-type=node-port & quarkus.kubernetes.ingress.expose=true) gives \
+		the service endpoint on localhost/127.0.0.1 and its public/wlan IP address.
+		~~~~~~~~~~~~~~~~~~~~~~
 
-~~~~~~~~~~~~~~~~~~~~~
-IMPORTANT take away 3: Use of JDK 21 with <maven.compiler.release>21</maven.compiler.release> works fine for native image deployments to Kubernetes/Microk8s \
-because the linux ntive image is first built using GraalVM 21 and then deployed to image: FROM registry.access.redhat.com/ubi9/ubi-minimal:9.2  \
-in src/main/docker/Dockerfile.native
+		~~~~~~~~~~~~~~~~~~~~~
+		IMPORTANT take away 2: If JDK 21 is used in pom.xml (with option  <maven.compiler.release>21</maven.compiler.release>) then JVM image (Non-native) depoyments \
+		to Kubernetes fails. This is because all the compilation/build are done using JDK 21 and the "FROM registry.access.redhat.com/ubi8/openjdk-17:1.16" image used \ 
+		in src/main/docker/Dockerfile.jvm && src/main/docker/Dockerfile.legacy.jar has older JDK 17.
+		There is no image with JVM 21 available yet (as of 22-Oct-2023)
+		~~~~~~~~~~~~~~~~~~~~~~
+
+		~~~~~~~~~~~~~~~~~~~~~
+		IMPORTANT take away 3: Use of JDK 21 with <maven.compiler.release>21</maven.compiler.release> works fine for native image deployments to Kubernetes/Microk8s \
+		because the linux ntive image is first built using GraalVM 21 and then deployed to image: FROM registry.access.redhat.com/ubi9/ubi-minimal:9.2  \
+		in src/main/docker/Dockerfile.native
+		~~~~~~~~~~~~~~~~~~~~~
+
+
 
 
 Kubectl commsnds ref:
