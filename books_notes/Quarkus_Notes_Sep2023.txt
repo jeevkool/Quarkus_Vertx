@@ -189,6 +189,9 @@ Find out how to test the K8S service end points.
 Microk8s: 22-Oct-2023: Deployed and tested successfully With Microk8s Kubernetes container on Ubuntu
 =======================================================================================================
 
+Note: To check Ubuntu version run the following commands:
+$ lsb_release -a
+
 Step 0: Install GraalVM/JDK and BuildEssentials/GCC etc on Ubuntu:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -477,10 +480,6 @@ Ref: https://kodekloud.com/blog/kubectl-create-namespace/
 
 3. 
 microk8s kubectl get all --all-namespaces
-
-
-
-
 
 
 
