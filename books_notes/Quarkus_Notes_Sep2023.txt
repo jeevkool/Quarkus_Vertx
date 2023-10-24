@@ -96,6 +96,10 @@ New-NetFirewallRule -DisplayName "WSL by interface" -Direction Inbound  -Interfa
 
 New-NetFirewallRule -DisplayName "WSL by interface" -Direction Outbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
 
+WSL Windows Ubuntu not able to connect to update sites or internet:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FIX (worked): Updating the nameserver to 8.8.8.8 in /etc/resolv.conf
+Ref: https://github.com/microsoft/WSL/issues/5976
 
 
 1. When running the native exe, and trying http://localhost:8080/vertx/web API, it calls Wikipedia HTTPS url within the code.
