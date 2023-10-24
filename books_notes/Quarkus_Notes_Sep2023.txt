@@ -286,6 +286,13 @@ AND THEN configure firewall to allow pod-to-pod and pod-to-internet communicatio
 	$ sudo ufw allow in on cni0 && sudo ufw allow out on cni0
 	$ sudo ufw default allow routed
 
+AND THEN add the current user to the microk8s group, so there's no need to do sudo every time:
+
+	$ sudo usermod -a -G microk8s rkoolath
+	$ cd ~/
+	$ mkdir .kube
+	$ sudo chown -R rkoolath ~/.kube
+
 NOTE: After installing enable the essential add ons, as follows:
 
 $ microk8s enable registry
