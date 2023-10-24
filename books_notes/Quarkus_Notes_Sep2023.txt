@@ -313,8 +313,11 @@ STEP 3: To Stop and Start Microk8s:
 $ microk8s stop
 $ microk8s start
 
+STEP 4: View/Verify all running Pods and Services:
 
-STEP 4: To start the Microk8s Dashboard: 
+$ microk8s kubectl get all --all-namespaces
+
+STEP 5: To start the Microk8s Dashboard: 
 
 $ microk8s dashboard-proxy      ==> Note the Dashboard URL and token to login displayed when this command is run.
 
