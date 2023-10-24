@@ -196,6 +196,8 @@ Install JDK on Ubuntu:
 Download tar.gz from https://download.oracle.com/graalvm/21/latest/graalvm-jdk-21_linux-x64_bin.tar.gz
 Ref: https://stackoverflow.com/questions/14931932/whats-the-correct-way-of-installing-jdk-on-linux
 
+$ wget https://download.oracle.com/graalvm/21/latest/graalvm-jdk-21_linux-x64_bin.tar.gz
+
 Copy the tar.gz to /usr/lib/jvm/
 $ sudo mkdir /usr/lib/jvm  ==> if necessary
 $ sudo cp ~/Downloads/graalvm-jdk-21_linux-x64_bin.tar.gz /usr/lib/jvm
