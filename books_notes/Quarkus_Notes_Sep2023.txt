@@ -605,4 +605,10 @@ Then go to  https://127.0.0.1:10443
 
 Note: The above port forwarding does not work after a restart and both WSL/Ubuntu and Windows has a different IP address!!
 
+================================================================
+Ubuntu/Linux/WSL etc:
+================================================================
+
+1. Find out Ubuntu version:
+	$ lsb_release -a
 
