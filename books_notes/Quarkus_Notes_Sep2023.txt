@@ -612,3 +612,10 @@ Ubuntu/Linux/WSL etc:
 1. Find out Ubuntu version:
 	$ lsb_release -a
 
+================================================================
+Kubernetes, kubectl, Microk8s, Minikube etc:
+================================================================
+
+1. "Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
+Ref: https://komodor.com/learn/kubectl-scale-deployment-the-basics-and-a-quick-tutorial/
+
