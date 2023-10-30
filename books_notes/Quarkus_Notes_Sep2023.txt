@@ -638,4 +638,4 @@ OR for microk8s:
 
 5. "Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
 Ref: https://komodor.com/learn/kubectl-scale-deployment-the-basics-and-a-quick-tutorial/
- 
+Example:  $ microk8s kubectl scale --replicas=3 deployment.apps/account-vertx-service 
