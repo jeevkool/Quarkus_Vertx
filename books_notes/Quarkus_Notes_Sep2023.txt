@@ -619,7 +619,14 @@ Kubernetes, kubectl, Microk8s, Minikube etc:
 	$ kubectl get all --all-namespaces
 For microk8s run:  $ microk8s kubectl get all --all-namespaces
 
-2. "Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
+2. To get all deployed Pods in the default namespace:
+ 	$ kubectl get pods
+For microk8s run: $ microk8s kubectl get pods
+
+To get all deployed Pods in ALL namespaces:
+	$ kubectl get pods --all-namespaces   OR for microk8s: $ microk8s kubectl get pods --all-namespaces
+
+3. "Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
 Ref: https://komodor.com/learn/kubectl-scale-deployment-the-basics-and-a-quick-tutorial/
 
-3. 
+4. 
