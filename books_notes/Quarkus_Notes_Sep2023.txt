@@ -615,7 +615,11 @@ Ubuntu/Linux/WSL etc:
 ================================================================
 Kubernetes, kubectl, Microk8s, Minikube etc:
 ================================================================
+1. Kubectl Get all pods, services, ==> everything from all namespaces:
+	$ kubectl get all --all-namespaces
+For microk8s run:  $ microk8s kubectl get all --all-namespaces
 
-1. "Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
+2. "Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
 Ref: https://komodor.com/learn/kubectl-scale-deployment-the-basics-and-a-quick-tutorial/
 
+3. 
