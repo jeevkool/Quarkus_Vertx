@@ -472,32 +472,6 @@ Added docker as continer image builder (vs. jib):
 		~~~~~~~~~~~~~~~~~~~~~
 
 
-
-
-Kubectl commsnds ref:
-============================
-
-Ref: Kubectl cheatsheet:  https://kubernetes.io/docs/reference/kubectl/cheatsheet/
-
-
-1. List all namespaces:
-	kubectl get namespaces
-
-2. To create a new namespace called 'vertxdev'
-	kubectl create namespace vertxdev
-
-Ref: https://kodekloud.com/blog/kubectl-create-namespace/
-
-3. 
-microk8s kubectl get all --all-namespaces
-
-
-
-
-
-
-
-
 ===============================================================================
 Minikube commands to use:
 ===============================================================================
@@ -582,6 +556,9 @@ Step 3: From above the exposed listen port of the Ingress is 31145.
 So, on Windows Poweshell run the Port Forwarding command "netsh interface portproxy add v4tov4 listenport=[PORT] listenaddress=0.0.0.0 connectport=[PORT] connectaddress=[WSL_IP] " as below:
 
 PS C:\Windows\system32> netsh interface portproxy add v4tov4 listenport=31145 listenaddress=0.0.0.0 connectport=31145 connectaddress=172.25.85.52
+==> THIS is the only thing that worked!! Other steps like adding WSL Firewall rules and local ports did NOT help!.
+
+Another instance/example: netsh interface portproxy add v4tov4 listenport=30329 listenaddress=0.0.0.0 connectport=30329 connectaddress=172.25.85.52
 
 This works! And now http://localhost:31145/vertx/hello?name=RK  returns the response.
 
@@ -591,7 +568,17 @@ The following does NOT seem to have any effects:
 	netsh interface portproxy add v4tov4 listenport=80 listenaddress=0.0.0.0 connectport=80 connectaddress=172.25.85.52
 	netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=8080 connectaddress=172.25.85.52
 
-To open Windows Firewall for 
+====== IF the above step does not work, TRY opening windows firewall from Powershell as follows ======================
+
+
+New-NetFirewallRule -DisplayName "WSL" -Direction Inbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+New-NetFirewallRule -DisplayName "WSL" -Direction Outbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+
+To open Windows Firewall for local ports, run on Powershell: Make sure include the ports to open up!
+
+New-NetFirewallRule -DisplayName "WSL2 Port Bridge" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 80,443,30329,10000,3000,5000
+============================================================================================================================
+ 
 
 To check the forwarded ports on Windows Powershell:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -615,6 +602,9 @@ Ubuntu/Linux/WSL etc:
 ================================================================
 Kubernetes, kubectl, Microk8s, Minikube etc:
 ================================================================
+
+Ref: Kubectl cheatsheet:  https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
 1. Kubectl Get all pods, services, ==> everything from all namespaces:
 	$ kubectl get all --all-namespaces
    For microk8s run:  $ microk8s kubectl get all --all-namespaces
@@ -635,7 +625,58 @@ Kubernetes, kubectl, Microk8s, Minikube etc:
 OR for microk8s:
 	$ microk8s kubectl get pods --namespace=vertxdev
 	$ microk8s kubectl get services --namespace=vertxdev
+	
+	$ microk8s kubectl delete services account-vertx-service
+	
+5.	To delete a deployment:
+	$ microk8s kubectl delete -n vertxdev deployment.apps/account-vertx-service
+	$ microk8s kubectl delete -n default deployment deployment.apps/account-vertx-service  ==> specifying the resource type 'deployment' is redundant, and is not necessary
+	
+6.	To delete a service:
+	$ microk8s kubectl delete -n vertxdev service/account-vertx-service
 
-5. "Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
+7. List all namespaces:  Ref: https://kodekloud.com/blog/kubectl-create-namespace/
+	kubectl get namespaces
+
+8. To create a new namespace called 'vertxdev' : Ref: https://kodekloud.com/blog/kubectl-create-namespace/
+	kubectl create namespace vertxdev
+
+9. "Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
 Ref: https://komodor.com/learn/kubectl-scale-deployment-the-basics-and-a-quick-tutorial/
 Example:  $ microk8s kubectl scale --replicas=3 deployment.apps/account-vertx-service 
+
+
+===========================================================================
+Frequently Used Commands:
+===========================================================================
+
+./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
+
+microk8s kubectl get all --namespace=vertxdev
+
+microk8s kubectl get services --namespace=vertxdev
+
+
+Native image build/deploy to k8s:
+./mvnw clean package -Dnative -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
+
+WSL Open Windows Firewall:
+	Step 1: From WSL/Ubuntu:
+		$ ifconfig
+		Output:
+			eth0: 
+					inet 172.25.85.52  netmask 255.255.240.0  broadcast 172.25.95.255
+					inet6 fe80::215:5dff:fe53:7c27  prefixlen 64  scopeid 0x20<link>
+					
+	Step 2: From Ubuntu/WSL:
+		$ microk8s kubectl get all -n vertxdev
+	
+	Output:
+		vertxdev   service/account-vertx-service     NodePort    10.152.183.236   <none>       80:31145/TCP  
+
+	Step 3: From above the exposed listen port of the Ingress is 31145.
+	So, on Windows Poweshell run the Port Forwarding command "netsh interface portproxy add v4tov4 listenport=[PORT] listenaddress=0.0.0.0 connectport=[PORT] connectaddress=[WSL_IP] " as below:
+
+	PS C:\Windows\system32> netsh interface portproxy add v4tov4 listenport=31145 listenaddress=0.0.0.0 connectport=31145 connectaddress=172.25.85.52
+==> THIS is the only thing that worked!! Other steps like adding WSL Firewall rules and local ports did NOT help!.
+
