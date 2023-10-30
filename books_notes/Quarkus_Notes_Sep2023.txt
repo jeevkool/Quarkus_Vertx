@@ -232,7 +232,7 @@ $ sudo source /etc/profile
 Error when running  $ ./mvnw clean package -Pnative   to build native image:
  "Error: Default native-compiler executable 'gcc' not found via environment variable PATH"
 
-FIX on Ubuntu:  run $ apt-get install build-essential
+FIX on Ubuntu:  run $ sudo apt-get install build-essential
 
 Error again: 
  " libz:.a is missing. Please install it"  AND
@@ -549,4 +549,60 @@ Ref 3: https://www.geeksforgeeks.org/how-to-set-up-kubernetes-cluster-on-local-m
 ***===> Running Multi-Node K8S clusters locally using Kind:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Ref 4: https://opensource.com/article/20/11/run-kubernetes-locally
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Quarkus and WSL Windows Port Forwarding Configs and Fixes:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Setting Quarkus Debug port 
+https://stackoverflow.com/questions/55289627/quarkusio-change-default-debug-port-using-quarkusdev
+
+2. Firewall rules & Assigning Static IP Addresses in WSL2
+https://gist.github.com/wllmsash/1636b86eed45e4024fb9b7ecd25378ce
+
+3. Worked! for one of the listen ports only! ==> Port Forwarding from WSL to LAN:
+Ref: https://jwstanly.com/blog/article/Port+Forwarding+WSL+2+to+Your+LAN/
+
+Step 1:	From WSL/Ubuntu:
+	$ ifconfig
+
+Output:
+	eth0: 
+			inet 172.25.85.52  netmask 255.255.240.0  broadcast 172.25.95.255
+			inet6 fe80::215:5dff:fe53:7c27  prefixlen 64  scopeid 0x20<link>
+
+Step 2: From Ubuntu/WSL:
+	$ microk8s kubectl get all --all-namespaces
+	
+Output:
+     
+	 vertxdev   service/account-vertx-service     NodePort    10.152.183.236   <none>       80:31145/TCP  
+
+Step 3: From above the exposed listen port of the Ingress is 31145.
+So, on Windows Poweshell run the Port Forwarding command "netsh interface portproxy add v4tov4 listenport=[PORT] listenaddress=0.0.0.0 connectport=[PORT] connectaddress=[WSL_IP] " as below:
+
+PS C:\Windows\system32> netsh interface portproxy add v4tov4 listenport=31145 listenaddress=0.0.0.0 connectport=31145 connectaddress=172.25.85.52
+
+This works! And now http://localhost:31145/vertx/hello?name=RK  returns the response.
+
+
+The following does NOT seem to have any effects:
+
+	netsh interface portproxy add v4tov4 listenport=80 listenaddress=0.0.0.0 connectport=80 connectaddress=172.25.85.52
+	netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=8080 connectaddress=172.25.85.52
+
+To open Windows Firewall for 
+
+To check the forwarded ports on Windows Powershell:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	C:\Windows\system32> netsh interface portproxy show v4tov4
+
+To open microk8s dashboard from Windows machine (on WSL/Ubuntu first run: $ microk8s dashboard-proxy  ==> then copy the authn token from terminal):
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Then go to  https://127.0.0.1:10443
+
+
+Note: The above port forwarding does not work after a restart and both WSL/Ubuntu and Windows has a different IP address!!
+
 
