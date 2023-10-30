@@ -617,16 +617,25 @@ Kubernetes, kubectl, Microk8s, Minikube etc:
 ================================================================
 1. Kubectl Get all pods, services, ==> everything from all namespaces:
 	$ kubectl get all --all-namespaces
-For microk8s run:  $ microk8s kubectl get all --all-namespaces
+   For microk8s run:  $ microk8s kubectl get all --all-namespaces
 
 2. To get all deployed Pods in the default namespace:
  	$ kubectl get pods
-For microk8s run: $ microk8s kubectl get pods
+   For microk8s run: $ microk8s kubectl get pods
 
-To get all deployed Pods in ALL namespaces:
+3. To get all deployed Pods in ALL namespaces:
 	$ kubectl get pods --all-namespaces   OR for microk8s: $ microk8s kubectl get pods --all-namespaces
+   To get all deployed services in ALL namespaces:
+	$ kubectl get services --all-namespaces
+   OR:	$ microk8s kubectl get services --all-namespaces
 
-3. "Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
+4. To get all deployed pods, services etc from a given namespace (say, vertxdev):
+	$ kubectl get services --namespace=vertxdev
+	$ kubectl get pods --namespace=vertxdev
+OR for microk8s:
+	$ microk8s kubectl get pods --namespace=vertxdev
+	$ microk8s kubectl get services --namespace=vertxdev
+
+5. "Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
 Ref: https://komodor.com/learn/kubectl-scale-deployment-the-basics-and-a-quick-tutorial/
-
-4. 
+ 
