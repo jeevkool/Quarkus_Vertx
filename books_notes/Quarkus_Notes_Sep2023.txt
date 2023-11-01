@@ -641,7 +641,16 @@ OR for microk8s:
 8. To create a new namespace called 'vertxdev' : Ref: https://kodekloud.com/blog/kubectl-create-namespace/
 	kubectl create namespace vertxdev
 
-9. "Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
+9. Tail application Logs on Kubernetes:
+Ref: https://signoz.io/blog/kubectl-logs-tail/
+
+	To follow/stream logs:
+	$ microk8s kubectl logs -n vertxdev --follow pod/account-vertx-service-678bd446cd-psfpn
+
+	To tail the latest 'n' ()=10) number of lines and to stream/follow:
+	$ microk8s kubectl logs -n vertxdev -f --tail=10 pod/account-vertx-service-678bd446cd-psfpn 
+
+10."Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
 Ref: https://komodor.com/learn/kubectl-scale-deployment-the-basics-and-a-quick-tutorial/
 Example:  $ microk8s kubectl scale --replicas=3 deployment.apps/account-vertx-service 
 
@@ -679,4 +688,39 @@ WSL Open Windows Firewall:
 
 	PS C:\Windows\system32> netsh interface portproxy add v4tov4 listenport=31145 listenaddress=0.0.0.0 connectport=31145 connectaddress=172.25.85.52
 ==> THIS is the only thing that worked!! Other steps like adding WSL Firewall rules and local ports did NOT help!.
+
+
+==================================================================================================================
+Linux Commands
+==================================================================================================================
+1. CPU usage: top
+	$ top
+
+2. CPU usage: mpstat
+	$ mpstat
+Ref:https://phoenixnap.com/kb/check-cpu-usage-load-linux
+
+3. CPU, Disk and Network utilization: nmon : Ref: https://phoenixnap.com/kb/check-cpu-usage-load-linux
+	Install using: sudo apt-get install nmon
+
+	Run using: 
+		$ nmon
+
+
+
+
+====================================================================================================================
+Git Commands
+====================================================================================================================
+1. Set global Git username, email, & password:
+Ref: https://www.aicg.com/blog/how-to-show-or-change-your-git-username-or-email-address-from-terminal/
+
+	$ git config --global user.name jeevkool
+
+	$ git config --global user.email "jeevkool@hotmail.com"
+
+
+2. List the Git current configurations, like user.name, user.email etc:
+	$ git config –list
+
 
