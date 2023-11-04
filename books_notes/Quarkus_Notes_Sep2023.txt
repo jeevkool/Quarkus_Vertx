@@ -96,7 +96,7 @@ New-NetFirewallRule -DisplayName "WSL by interface" -Direction Inbound  -Interfa
 
 New-NetFirewallRule -DisplayName "WSL by interface" -Direction Outbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
 
-WSL Windows Ubuntu not able to connect to update sites on internet. DNS error:
+WSL Windows Ubuntu not able to connect to update sites or internet:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FIX (worked): Updating the nameserver to 8.8.8.8 in /etc/resolv.conf
 Ref: https://github.com/microsoft/WSL/issues/5976
@@ -281,6 +281,10 @@ STEP 2. Install Microk8s locally:  https://ubuntu.com/tutorials/install-a-local-
 
 $ sudo snap install microk8s --classic
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTE: to uninstall run $ sudo snap remove --purge microk8s
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 AND THEN configure firewall to allow pod-to-pod and pod-to-internet communication::
 
 	$ sudo ufw allow in on cni0 && sudo ufw allow out on cni0
@@ -300,12 +304,25 @@ $ microk8s enable dns
 $ microk8s enable dashboard
 $ microk8s enable storage
 
+======================================================
+DO the below step everytime Micork8s is installed or re-installed! OTHERWISE 
+======================================================
 Copied the default config file Microk8s creates at /var/snap/microk8s/current/credentials/client.config  to  ~/.kube/config  as follows:
 $ sudo cp /var/snap/microk8s/current/credentials/client.config ~/.kube/config
 
 	NOTE: This file has the Kubernetes API server URL as: https://127.0.0.1:16443
 
 REF: https://discuss.kubernetes.io/t/where-does-microk8s-store-kubectl-config-file/11032 (for the above)
+
+======================================================
+If this above STEP is not done then the following 'SSL connection' ERROR happens when application deployment is tried:
+====================================================
+
+[ERROR] Failed to execute goal io.quarkus.platform:quarkus-maven-plugin:3.5.0:build (default) on project quarkus-kool-vertx1: Failed to build quarkus application: io.quarkus.builder.BuildException: Build failure: Build failed due to errors
+[ERROR]         [error]: Build step io.quarkus.kubernetes.deployment.KubernetesDeployer#deploy threw an exception: java.lang.RuntimeException: Although a Kubernetes deployment was requested, it however cannot take place because there was an error during communication with the API Server at 'https://127.0.0.1:16443/'
+[ERROR]         at io.quarkus.kubernetes.deployment.KubernetesDeploy.doCheck(KubernetesDeploy.java:80)
+[ERROR] Caused by: io.fabric8.kubernetes.client.KubernetesClientException: An error has occurred.
+[ERROR] Caused by: java.io.IOException: Failed to create SSL connection
 
 
 STEP 3: To Stop and Start Microk8s:
@@ -322,6 +339,12 @@ STEP 5: To start the Microk8s Dashboard:
 $ microk8s dashboard-proxy      ==> Note the Dashboard URL and token to login displayed when this command is run.
 
 REF (for the above) : https://askubuntu.com/questions/1123996/how-to-access-micro8kss-dashboard-web-ui
+
+	==========================================================
+	Create the custom namespace for the application in Microk8s before deploying the application:
+	===================================================================
+	$ microk8s kubectl create namespace vertxdev
+
 
 
 2. After successfully deploying to Kubernetes cluster, did the following to get host:port to test the service:
@@ -558,7 +581,7 @@ So, on Windows Poweshell run the Port Forwarding command "netsh interface portpr
 PS C:\Windows\system32> netsh interface portproxy add v4tov4 listenport=31145 listenaddress=0.0.0.0 connectport=31145 connectaddress=172.25.85.52
 ==> THIS is the only thing that worked!! Other steps like adding WSL Firewall rules and local ports did NOT help!.
 
-Another instance/example: netsh interface portproxy add v4tov4 listenport=30329 listenaddress=0.0.0.0 connectport=30329 connectaddress=172.25.85.52
+Another instance/example: netsh interface portproxy add v4tov4 listenport=30903 listenaddress=0.0.0.0 connectport=30903 connectaddress=172.25.85.52
 
 This works! And now http://localhost:31145/vertx/hello?name=RK  returns the response.
 
@@ -689,6 +712,7 @@ WSL Open Windows Firewall:
 	PS C:\Windows\system32> netsh interface portproxy add v4tov4 listenport=31145 listenaddress=0.0.0.0 connectport=31145 connectaddress=172.25.85.52
 ==> THIS is the only thing that worked!! Other steps like adding WSL Firewall rules and local ports did NOT help!.
 
+netsh interface portproxy add v4tov4 listenport=31323 listenaddress=0.0.0.0 connectport=31323 connectaddress=172.25.85.52
 
 ==================================================================================================================
 Linux Commands
