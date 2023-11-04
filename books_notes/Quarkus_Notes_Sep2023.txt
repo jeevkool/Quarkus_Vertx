@@ -96,7 +96,7 @@ New-NetFirewallRule -DisplayName "WSL by interface" -Direction Inbound  -Interfa
 
 New-NetFirewallRule -DisplayName "WSL by interface" -Direction Outbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
 
-WSL Windows Ubuntu not able to connect to update sites or internet:
+WSL Windows Ubuntu not able to connect to update sites on internet. DNS error:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FIX (worked): Updating the nameserver to 8.8.8.8 in /etc/resolv.conf
 Ref: https://github.com/microsoft/WSL/issues/5976
