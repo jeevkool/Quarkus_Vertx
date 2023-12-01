@@ -747,4 +747,9 @@ Ref: https://www.aicg.com/blog/how-to-show-or-change-your-git-username-or-email-
 2. List the Git current configurations, like user.name, user.email etc:
 	$ git config –list
 
+====================================================================================================================
+Rancher Kubernetes and K3S
+====================================================================================================================
+1. Rancher Desktop Kubernetes: Installation guide: 
+https://docs.rancherdesktop.io/getting-started/installation/#linux
 
