@@ -27,6 +27,26 @@ to see the output.
 
 7. Open VS Code, and open folder D:\QuarkusSpace\second\second-app to navigate and edit code.
 
+8. Docker is required for container image building, and K8S deployments. 
+	Docker and Docker Hub login:
+	Google login using: psionic.mutant@gmail.com
+	Docker username:  psionicmutant
+	
+9.Git & GitHub configs: 
+	Git Ref: https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup
+
+	The Github URL for this repository is: https://github.com/jeevkool/Quarkus_Vertx.git
+	Add global git username and password for GitHub authentication, as follows at the Git command prompt:
+
+		git config --global user.name "jeevkool"
+		git config --global user.email jeevkool@hotmail.com
+		git config --global user.password Key2free!
+
+	Verify by listing the Git configs:
+
+		$ git config --list
+
+
 ***=================================================================***
 ****=============== BUILDING Native Image =========================****
 
