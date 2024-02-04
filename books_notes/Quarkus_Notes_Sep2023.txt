@@ -800,6 +800,13 @@ Git Commands
 2. Verify by listing the Git configs:
 
 		$ git config --list
+		
+3. Adding GitHub respository to Visual Studio Code:
+On the VS Code Left side Ribbon, go to 'Source Control'. (Alternative: Ctrl+Shift+G G). THEN from the menu to the right of 'SOURCE CONTROL' click on '...' then pick 'Remote' > 'Add Remote' 
+And then add the GitHub URL to the repository. Give it a name when it asks. Preferable GitHub <repository name>
+
+4. To add files and push/upload changes to the GitHub respository ==> Either select a Commit & Push option from the 'Source Control' > 'SOURCE CONTROL' as above.
+Or first do a commit there, and then do the Push.
 
 ====================================================================================================================
 Rancher Kubernetes and K3S
