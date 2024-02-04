@@ -1,0 +1,822 @@
+0. Clear the local Maven reporitory cache by deleting contents of: C:\Users\rkool\.m2\repository
+AND  C:\Users\rkool\.m2\wrapper.
+
+1. Installed GraalVM latest version (OpenJDK 20 works as well) at D:\apps\GraalVM\graalvm-jdk-20.0.2.9.1 
+Set JAVA_HOME, and PATH variables to point to the install directoty and its bin folder.
+Set GRAALVM_HOME=D:\apps\GraalVM\graalvm-jdk-20.0.2.9.1
+
+2. Downloaded latest Maven dist, unzipped to D:\apps\apache\maven\apache-maven-3.9.4
+Added D:\apps\apache\maven\apache-maven-3.9.4\bin to the PATH.
+Set MVN_HOME to D:\apps\apache\maven\apache-maven-3.9.4
+
+3. Created a workspace directoty at D:\QuarkusSpace\second
+cd D:\QuarkusSpace\second
+
+4. Run the following command to Scaffold a starter App:
+
+mvn io.quarkus:quarkus-maven-plugin:3.3.1:create -DprojectGroupId=org.kool -DprojectArtifactId=second-app -DclassName="org.kool.second.SecondResource" -Dpath="/second"
+
+Note: Check for the latest version of the plugin io.quarkus:quarkus-maven-plugin:3.3.1 at the maven reporitory at: https://mvnrepository.com/artifact/io.quarkus/quarkus-maven-plugin   and update the above command in the future as necessary.
+
+
+5. cd D:\QuarkusSpace\second\second-app
+Run the command:  mvnw quarkus:dev
+
+6. Goto http://localhost:8080/second
+to see the output.
+
+7. Open VS Code, and open folder D:\QuarkusSpace\second\second-app to navigate and edit code.
+
+8. Docker is required for container image building, and K8S deployments. 
+	Docker and Docker Hub login:
+	Google login using: psionic.mutant@gmail.com
+	Docker username:  psionicmutant
+	
+9.Git & GitHub configs: 
+	Git Ref: https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup
+
+	The Github URL for this repository is: https://github.com/jeevkool/Quarkus_Vertx.git
+	Add global git username and password for GitHub authentication, as follows at the Git command prompt:
+
+		git config --global user.name "jeevkool"
+		git config --global user.email jeevkool@hotmail.com
+		git config --global user.password Key2free!
+
+	Verify by listing the Git configs:
+
+		$ git config --list
+
+
+***=================================================================***
+****=============== BUILDING Native Image =========================****
+
+===> Note: Make sure to open CMD "x64 Native Tools Command Prompt for VS 2022"  and NOT: "x64_x86 Cross Tools Command Prompt for VS 2022"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ref: Steps here: https://access.redhat.com/documentation/en-us/red_hat_build_of_quarkus/quarkus-2-7/guide/f93c45bd-4feb-4f74-a70a-022e9fb41957#_7293eccb-e8ef-47f9-b8b3-b185e5af504b
+
+AND here: https://quarkus.io/guides/building-native-image
+
+Note: On Windows make sure the "C Development Environment" Visual Studio 2017 Visual C++ Build Tools is installed from here: https://aka.ms/vs/15/release/vs_buildtools.exe
+
+1.Install Visual Studio 2022 Build Tools.
+2. Make sure GRAALVM_HOME is set properly and JAVA_HOME is pointing to  GRAALVM_HOME
+3. Open x64 Native Tools Command Prompt for VS 2022 ==> Not the usual CMD prompt.
+4. CD to the app directory. cd D:\QuarkusSpace\second\second-app
+5. Run command:  mvnw install -Dnative    
+This builds the native image in the D:\QuarkusSpace\second\second-app\target directory.
+Note: This takes several minutes to builf the exe. Exe File built is: "second-app-1.0.0-SNAPSHOT-runner.exe"
+You can copy this file to any directory, and run on its own.
+
+
+
+***========RECIPE: USING VERT.X Reactive API FROM QUARKUS APPLICATION=======================***
+
+Note: Complete example App code demonstrates use of Streaming, Events/EventBus, and Non-blocking Vertx Web Client that sends a GET request to the Wikipedia API.
+
+Ref: USING ECLIPSE VERT.X Reactive API FROM A QUARKUS APPLICATION : https://quarkus.io/guides/vertx#:~:text=import%20jakarta.ws.rs.Path%3B%20%40Path%28%22%2Fvertx%22%29%20%281%29public%20class%20VertxResource%20%7B%20private,VertxResource%28Vertx%20vertx%29%20%7B%20%283%29this.vertx%20%3D%20vertx%3B%20%284%29%7D%20%7D
+
+
+Vertx Building Verticles for EventBus: https://quarkus.io/guides/vertx-reference
+
+*****=======================================================================================****
+====>> USING THE EVENT BUS  << ====================
+Ref: https://quarkus.io/guides/reactive-event-bus
+
+___________________________________
+Errors & Fixes:
+===================================
+0. So many Errors and failures due to ZScaler client blocking, when code tries to connect over SSL, and K8S tries to connect to repositories over SSL etc.
+
+Solution REF 1: https://www.reddit.com/r/techsupport/comments/xm2jng/comment/ivflauk/
+
+Solution REF 2: https://stackoverflow.com/questions/75875351/zscaler-cannot-stop-the-service-without-passwords
+
+Solution:
+~~~~~~~~~~
+If you have admin rights, you can disable it under Powershell.
+
+List the status:
+Get-NetAdapterBinding -AllBindings -ComponentID ZS_ZAPPRD
+
+Disable:
+Get-NetAdapterBinding -AllBindings -ComponentID ZS_ZAPPRD | Disable-NetAdapterBinding
+
+Enable:
+Get-NetAdapterBinding -AllBindings -ComponentID ZS_ZAPPRD | Enable-NetAdapterBinding
+
+
+WSL Enable Windows Firewall:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+New-NetFirewallRule -DisplayName "WSL" -Direction Inbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+New-NetFirewallRule -DisplayName "WSL" -Direction Outbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+
+New-NetFirewallRule -DisplayName "WSL by interface" -Direction Inbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+
+New-NetFirewallRule -DisplayName "WSL by interface" -Direction Outbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+
+WSL Windows Ubuntu not able to connect to update sites or internet:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FIX (worked): Updating the nameserver to 8.8.8.8 in /etc/resolv.conf
+Ref: https://github.com/microsoft/WSL/issues/5976
+
+
+1. When running the native exe, and trying http://localhost:8080/vertx/web API, it calls Wikipedia HTTPS url within the code.
+	It then gives the error: "{"exceptionType":"io.vertx.core.VertxException","code":500,"error":"java.net.MalformedURLException: Accessing a URL protocol that was not enabled. The URL protocol https is supported but not enabled by default. It must be enabled by adding the --enable-url-protocols=https option to the native-image command."}"
+
+Solution REF: https://quarkus.io/guides/native-and-ssl
+Solution:
+	To fix this add the following property to application.properties 
+	quarkus.ssl.native=true     ==> and clean rebuild the native image using "mvnw clean install -Dnative"
+
+
+2. Error: "[ERROR] Unknown lifecycle phase ".native.container-build=true". You must specify a valid lifecycle phase or a goal "
+	When running: ./mvnw package -Pnative -Dquarkus.native.container-build=true
+	from the eBook "Kubernetes-native-microservices-ebook-v4.pdf" Book page 48 (pdf page 65).
+
+
+	Install Docker, Run Docker daemon, install minikube, start minikube ($ minikube start) and then run the following:
+	Solution: Run the following command instead:
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	./mvnw package -Pnative --define quarkus.native.container-build=true --define quarkus.container-image.build=true
+
+	If the above command is not run from "x64 Native Tools Command Prompt for VS 2022" OR Docker Daemon is not running: the following Error happens: 
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	[ERROR] Failed to execute goal io.quarkus.platform:quarkus-maven-plugin:3.3.2:build (default) on project quarkus-kool-vertx1: Failed to build quarkus application: io.quarkus.builder.BuildException: Build failure: 
+	Build failed due to errors.
+	[ERROR]         [error]: Build step io.quarkus.deployment.pkg.steps.NativeImageBuildStep#resolveNativeImageBuildRunner threw an exception: java.lang.IllegalStateException: 
+	No container runtime was found. Make sure you have either Docker or Podman installed in your environment.
+
+Do the following on Ubuntu for microk8s at the same bash terminal, before running the /mvnw package --define quarkus.kubernetes.deploy=true  to deploy.
+ 
+export KUBERNETES_MASTER=127.0.0.1:16443
+export KUBERNETES_NAMESPACE=default
+
+	==> Once the image is built successfully, run the following to Deploy to K8s:
+
+	./mvnw package --define quarkus.kubernetes.deploy=true
+
+	./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true -Dquarkus.container-image.registry=registry.hub.docker.com 
+
+Ubuntu with microk8s: API Server URL:
+127.0.0.1:16443
+
+10.152.183.1:443
+
+
+./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
+
+
+	==> Once deployed sucessfully, as above, list minikube services to locate the newly deployed container instance, its URL and port:
+
+	$ minikube service list
+
+	** ==>If the above did not display the service URL, then try giving the service name as below:
+
+	$ minikube service account-vertx-service
+
+		==> This should list the URL and port.
+
+ALT: $ minikube service -all   ==> This lists the services and URLs. Output for the only service looks like this:
+|-----------|-----------------------|-------------|---------------------------|
+| NAMESPACE |         NAME          | TARGET PORT |            URL            |
+|-----------|-----------------------|-------------|---------------------------|
+| default   | account-vertx-service | http/80     | http://192.168.58.2:31878 |
+|-----------|-----------------------|-------------|---------------------------|
+
+3. 9/29/2023 Error: Service is not accessible using curl or browser using the URL above: http://192.168.58.2:31878/vertx/hello?name=ABC fails!
+===> To troubleshoot K8S and Minikube.
+
+NOTE 9/29/2023:
+~~~~~
+Try running  eval $(minikube -p minikube docker-env)  OR   $ minikube -p minikube docker-env in the command shell AFTER running $ minikube start.
+Then run the $ ./mvnw package -Pnative --define quarkus.native.container-build=true --define quarkus.container-image.build=true
+and THEN the $ ./mvnw package --define quarkus.kubernetes.deploy=true
+
+Note 2: 
+~~~~~~~
+Find out how to access Application log within the Minikube node and K8S cluster.
+Find out how to monitor the k8s cluster nodes status, and health.
+Find out how to test the K8S service end points.
+
+=============END of ERROR section ==================================================================
+
+
+
+
+=======================================================================================================
+Microk8s: 22-Oct-2023: Deployed and tested successfully With Microk8s Kubernetes container on Ubuntu
+=======================================================================================================
+
+Note: To check Ubuntu version run the following commands:
+$ lsb_release -a
+
+Step 0: Install GraalVM/JDK and BuildEssentials/GCC etc on Ubuntu:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install JDK on Ubuntu:
+Download tar.gz from https://download.oracle.com/graalvm/21/latest/graalvm-jdk-21_linux-x64_bin.tar.gz
+Ref: https://stackoverflow.com/questions/14931932/whats-the-correct-way-of-installing-jdk-on-linux
+
+$ wget https://download.oracle.com/graalvm/21/latest/graalvm-jdk-21_linux-x64_bin.tar.gz
+
+Copy the tar.gz to /usr/lib/jvm/
+$ sudo mkdir /usr/lib/jvm  ==> if necessary
+$ sudo cp ~/Downloads/graalvm-jdk-21_linux-x64_bin.tar.gz /usr/lib/jvm
+
+Extract jar.gz:
+$ cd /usr/lib/jvm/
+$ sudo tar -xzf ./graalvm-jdk-21_linux-x64_bin.tar.gz
+$ sudo chmod -R a+rx ./graalvm-jdk-21.0.2+13.1
+
+Set environment variables ==> Needs Ubuntu restart to take effect.
+$  sudo nano /etc/environment
+Add "/usr/lib/jvm/graalvm-jdk-21.0.2+13.1/bin" to PATH
+Define JAVA_HOME="/usr/lib/jvm/graalvm-jdk-21.0.2+13.1"
+
+$ source /etc/environment   ==> to take effect immediately without restarting.
+NOTE: This is not taking effect after logout/login.
+
+Update /etc/profile with the following towards the end of the file:
+
+$ sudo nano /etc/profile
+
+
+export JAVA_HOME="/usr/lib/jvm/graalvm-jdk-21.0.2+13.1"
+export GRAALVM_HOME="/usr/lib/jvm/graalvm-jdk-21.0.2+13.1"
+export PATH=$JAVA_HOME/bin:$PATH
+
+
+$ sudo source /etc/profile
+
+Error when running  $ ./mvnw clean package -Pnative   to build native image:
+ "Error: Default native-compiler executable 'gcc' not found via environment variable PATH"
+
+FIX on Ubuntu:  run $ sudo apt-get install build-essential
+
+Error again: 
+ " libz:.a is missing. Please install it"  AND
+ "/usr/bin/ld: cannot find -lz: No such file or directory"
+
+To fix:  $ sudo apt install zlib1g-dev
+REF: https://github.com/oracle/graal/issues/2727
+
+Also did: 
+$ apt-get install gcc-multilib
+
+REF: https://stackoverflow.com/questions/61725948/how-to-solve-error-message-gcc-command-not-found-only-with-arguments-on-ub
+
+=================================== END of Install GraalVM/JDK=========================
+
+=====================================================================================================================================================================
+NOTE: Docker install, below, is not required for native image build using "./mvnw clean install -Dnative". BUT the above steps of "apt install build-essential" && 
+"apt install zlib1g-dev" && "$ apt-get install gcc-multilib" ALL are required. Otherwise it fails with ERROR.
+=====================================================================================================================================================================
+
+
+Step 1: Then installed Docker on Ubuntu: Ref: https://www.simplilearn.com/tutorials/docker-tutorial/how-to-install-docker-on-ubuntu
+
+IGNORE other steps/commands in the above article, like uninstall first, using snap etc. ONLY the below steps/commands are necessary:
+
+$ sudo apt-get update
+$ sudo apt install docker.io
+
+Verify using:
+$ docker --version
+AND
+$ sudo docker run hello-world
+
+To display all the containers pulled, use the following command:
+$ sudo docker ps -a
+
+IMPORTANT: To be able to Execute the Docker Command Without Sudo: 
+First, establish the Docker Group:
+
+$ sudo groupadd docker
+
+Next, add the user in the Docker group:
+
+$ sudo usermod -aG docker $USER
+
+NEXT : Reboot Ubuntu for the above changes to take effect!!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+STEP 2. Install Microk8s locally:  https://ubuntu.com/tutorials/install-a-local-kubernetes-with-microk8s#1-overview
+
+$ sudo snap install microk8s --classic
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTE: to uninstall run $ sudo snap remove --purge microk8s
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+AND THEN configure firewall to allow pod-to-pod and pod-to-internet communication::
+
+	$ sudo ufw allow in on cni0 && sudo ufw allow out on cni0
+	$ sudo ufw default allow routed
+
+AND THEN add the current user to the microk8s group, so there's no need to do sudo every time:
+
+	$ sudo usermod -a -G microk8s rkoolath
+	$ cd ~/
+	$ mkdir .kube
+	$ sudo chown -R rkoolath ~/.kube
+
+NOTE: After installing enable the essential add ons, as follows:
+
+$ microk8s enable registry
+$ microk8s enable dns
+$ microk8s enable dashboard
+$ microk8s enable storage
+
+======================================================
+DO the below step everytime Micork8s is installed or re-installed! OTHERWISE 
+======================================================
+Copied the default config file Microk8s creates at /var/snap/microk8s/current/credentials/client.config  to  ~/.kube/config  as follows:
+$ sudo cp /var/snap/microk8s/current/credentials/client.config ~/.kube/config
+
+	NOTE: This file has the Kubernetes API server URL as: https://127.0.0.1:16443
+
+REF: https://discuss.kubernetes.io/t/where-does-microk8s-store-kubectl-config-file/11032 (for the above)
+
+======================================================
+If this above STEP is not done then the following 'SSL connection' ERROR happens when application deployment is tried:
+====================================================
+
+[ERROR] Failed to execute goal io.quarkus.platform:quarkus-maven-plugin:3.5.0:build (default) on project quarkus-kool-vertx1: Failed to build quarkus application: io.quarkus.builder.BuildException: Build failure: Build failed due to errors
+[ERROR]         [error]: Build step io.quarkus.kubernetes.deployment.KubernetesDeployer#deploy threw an exception: java.lang.RuntimeException: Although a Kubernetes deployment was requested, it however cannot take place because there was an error during communication with the API Server at 'https://127.0.0.1:16443/'
+[ERROR]         at io.quarkus.kubernetes.deployment.KubernetesDeploy.doCheck(KubernetesDeploy.java:80)
+[ERROR] Caused by: io.fabric8.kubernetes.client.KubernetesClientException: An error has occurred.
+[ERROR] Caused by: java.io.IOException: Failed to create SSL connection
+
+
+STEP 3: To Stop and Start Microk8s:
+
+$ microk8s stop
+$ microk8s start
+
+STEP 4: View/Verify all running Pods and Services:
+
+$ microk8s kubectl get all --all-namespaces
+
+STEP 5: To start the Microk8s Dashboard: 
+
+$ microk8s dashboard-proxy      ==> Note the Dashboard URL and token to login displayed when this command is run.
+
+REF (for the above) : https://askubuntu.com/questions/1123996/how-to-access-micro8kss-dashboard-web-ui
+
+	==========================================================
+	Create the custom namespace for the application in Microk8s before deploying the application:
+	===================================================================
+	$ microk8s kubectl create namespace vertxdev
+
+
+
+2. After successfully deploying to Kubernetes cluster, did the following to get host:port to test the service:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DEPLOYMENT Config 1 (JVM image, not -Dnative): service-type=node-port  &&  ingress.expose=true ==> With config properties in application.properties as:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	quarkus.kubernetes.namespace=vertxdev   ==> Necessary to specify the namespace. (First create one using: $ kubectl create namespace vertxdev )
+
+	quarkus.knative.image-pull-policy=if-not-present
+	quarkus.kubernetes.service-type=node-port
+	quarkus.kubernetes.ingress.expose=true
+	quarkus.container-image.insecure=true  ==> Necessary for registry that is not secured with a login or token.
+
+$ ./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
+
+
+	After successfully deploying to Kubernetes cluster as above: Listed all currently running pods, services etc using the command:
+
+	$ microk8s kubectl get all --all-namespaces
+
+	It listed services and among that was the App/service:
+
+	NAMESPACE            NAME                                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+	vertxdev             service/account-vertx-service       NodePort    10.152.183.143   <none>        80:31373/TCP             17m
+
+	From that the external port (exposed port) is 31373
+
+	So accessed and tested successfully using  http://10.152.183.143:31373/vertx/hello?name=qqq
+	AND 
+	http://127.0.0.1:31373/vertx/hello?name=SSS
+
+	AND
+	http://localhost:31373/vertx/hello?name=SSS
+
+
+	Also worked:  http://192.168.0.38:31373/vertx/hello?name=WWW
+	Where the IP address is the wlan IP of the computer found using ifconfig
+
+	Also worked:  http://10.1.176.40:8080/vertx/hello?name=AAA
+
+	Where the IP address is obtained from Microk8s Dashboard at https://127.0.0.1:10443/   (run using  $ microk8s dashboard-proxy)
+	Go to Services on the left side menu, THEN click on account-vertx-service  AND then look in the  "Endpoints" section to see the following:
+
+	Host			Ports (Name, Port, Protocol)		Node					Ready
+	10.1.176.40		http,8080,TCP						rajeev-latitude-e7450	true
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DEPLOYMENT Config 2 (JVM image not -Dnative): service-type=cluster-ip  &&  ingress.expose=true
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 	quarkus.kubernetes.namespace=vertxdev   ==> Necessary to specify the namespace. (First create one using: $ kubectl create namespace vertxdev )
+
+	quarkus.knative.image-pull-policy=if-not-present
+	quarkus.kubernetes.service-type=cluster-ip		==> This is the default option even if not specified.
+	quarkus.kubernetes.ingress.expose=true
+	quarkus.container-image.insecure=true  ==> Necessary for registry that is not secured with a login or token.
+
+./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
+
+	After successfully deploying to Kubernetes cluster as above: Listed all currently running pods, services etc using the command:
+
+	$ microk8s kubectl get all --all-namespaces  Lists the service as follows:
+
+
+	NAMESPACE            NAME                                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+	vertxdev             service/account-vertx-service       ClusterIP   10.152.183.170   <none>        80/TCP                   6m9s
+
+
+	So accessed and tested successfully using ClusterIP  http://10.152.183.170/vertx/hello?name=qqq
+
+	Also: 
+	From Dashboard at http://127.0.0.1:10443/  Go to Services on the left side menu, THEN click on account-vertx-service  AND then look in the  "Endpoints" section to see the following:
+
+
+	Host				Ports (Name, Port, Protocol)		Node				Ready
+	10.1.176.45			http,8080,TCP					rajeev-latitude-e7450	true
+
+	So the URL: http://10.1.176.45:8080/vertx/hello?name=qqq   also works.
+
+
+NOTE ** ==>> IMPORTANT distinction from Deployment Config 1: With quarkus.kubernetes.service-type=cluster-ip  (vs node-port) the endpoint is not exposed or available on any of the external host Ip addresses 
+	like the localhost/127.0.0.1/192.168.0.38 etc on any ports.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DEPLOYMENT Config 3 (Native image with -Dnative option): service-type=cluster-ip  &&  ingress.expose=true. 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTE: It uses: FROM registry.access.redhat.com/ubi9/ubi-minimal:9.2  in src/main/docker/Dockerfile.native
+
+It uses the following changes in pom.xml:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	<compiler-plugin.version>3.11.0</compiler-plugin.version>
+	<maven.compiler.release>21</maven.compiler.release> <<== JDK 21
+	<quarkus.platform.version>3.5.0.CR1</quarkus.platform.version> <<== Latest Quarkus version as of 22-Oct-2023
+
+Commented out Minikube and Jib as follows:
+	<!--
+	<dependency>
+	<groupId>io.quarkus</groupId>
+	<artifactId>quarkus-minikube</artifactId>
+	</dependency>
+	-->
+	<!-- 
+	<dependency>
+	<groupId>io.quarkus</groupId>
+	<artifactId>quarkus-container-image-jib</artifactId>
+	</dependency>
+	-->
+Added docker as continer image builder (vs. jib):
+	<dependency>
+	<groupId>io.quarkus</groupId>
+	<artifactId>quarkus-container-image-docker</artifactId>
+	</dependency>
+
+
+	Run the build & deploy using:
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	./mvnw clean package -Dnative -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
+
+	URL 1:
+	Everything else works and tested as before in DEPLOYMENT Config 2.
+	$ microk8s kubectl get all --all-namespaces  ==> Listed the cluster IP and port to get the URL to the service.
+
+	URL 2: Ran the Microk8s proxy, as before, to get the  "Endpoints" section, and the IP and port 8080 from there. 
+	$ microk8s dashboard-proxy
+	URL tested: http://10.1.176.55:8080/vertx/hello?name=sss
+
+
+		~~~~~~~~~~~~~~~~~~~~~
+		IMPORTANT take away 1: ONLY Deployment config 1 (with quarkus.kubernetes.service-type=node-port & quarkus.kubernetes.ingress.expose=true) gives \
+		the service endpoint on localhost/127.0.0.1 and its public/wlan IP address.
+		~~~~~~~~~~~~~~~~~~~~~~
+
+		~~~~~~~~~~~~~~~~~~~~~
+		IMPORTANT take away 2: If JDK 21 is used in pom.xml (with option  <maven.compiler.release>21</maven.compiler.release>) then JVM image (Non-native) depoyments \
+		to Kubernetes fails. This is because all the compilation/build are done using JDK 21 and the "FROM registry.access.redhat.com/ubi8/openjdk-17:1.16" image used \ 
+		in src/main/docker/Dockerfile.jvm && src/main/docker/Dockerfile.legacy.jar has older JDK 17.
+		There is no image with JVM 21 available yet (as of 22-Oct-2023)
+		~~~~~~~~~~~~~~~~~~~~~~
+
+		~~~~~~~~~~~~~~~~~~~~~
+		IMPORTANT take away 3: Use of JDK 21 with <maven.compiler.release>21</maven.compiler.release> works fine for native image deployments to Kubernetes/Microk8s \
+		because the linux ntive image is first built using GraalVM 21 and then deployed to image: FROM registry.access.redhat.com/ubi9/ubi-minimal:9.2  \
+		in src/main/docker/Dockerfile.native
+		~~~~~~~~~~~~~~~~~~~~~
+
+
+===============================================================================
+Minikube commands to use:
+===============================================================================
+1. To start the Minikube node:
+
+	$ minikube start
+
+Note: Do this after starting Docker daemon on Windows.
+
+2. To start the miikube K8S dashboard:
+
+	$ minikube dashboard
+
+3. To list services with their URL and port:
+
+	$ minikube service --all
+
+4. To list a specific service by name:
+
+	$ minikube service <service-name>
+
+Example: $ minikube service account-vertx-service
+
+5. To stop minikube:
+
+	$ minikube stop
+
+6. To delete a deployment:
+	$ kubectl delete -n default deployment account-vertx-service
+
+7. To delete a service:
+	$ kubectl delete services account-vertx-service
+
+8. Start Minikube with 
+
+	$ minikube start --insecure-registry "192.168.65.0/24"    ==> This IP/Port can be obtained from Docker desktop menu: /settings//Resources//Network 
+	$ minikube addons enable metrics-server  ==> ONLY need to run once. To enable metrics server.
+===============================================================================
+
+Installing Minikube:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ref 1: https://minikube.sigs.k8s.io/docs/start/
+
+Ref 2: https://medium.com/@mananu/run-a-kubernetes-cluster-locally-on-windows-c15e685113bb
+
+Ref 3: https://www.geeksforgeeks.org/how-to-set-up-kubernetes-cluster-on-local-machine-using-minikube/
+
+***===> Running Multi-Node K8S clusters locally using Kind:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Ref 4: https://opensource.com/article/20/11/run-kubernetes-locally
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Quarkus and WSL Windows Port Forwarding Configs and Fixes:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Setting Quarkus Debug port 
+https://stackoverflow.com/questions/55289627/quarkusio-change-default-debug-port-using-quarkusdev
+
+2. Firewall rules & Assigning Static IP Addresses in WSL2
+https://gist.github.com/wllmsash/1636b86eed45e4024fb9b7ecd25378ce
+
+3. Worked! for one of the listen ports only! ==> Port Forwarding from WSL to LAN:
+Ref: https://jwstanly.com/blog/article/Port+Forwarding+WSL+2+to+Your+LAN/
+
+Step 1:	From WSL/Ubuntu:
+	$ ifconfig
+
+Output:
+	eth0: 
+			inet 172.25.85.52  netmask 255.255.240.0  broadcast 172.25.95.255
+			inet6 fe80::215:5dff:fe53:7c27  prefixlen 64  scopeid 0x20<link>
+
+Step 2: From Ubuntu/WSL:
+	$ microk8s kubectl get all --all-namespaces
+	
+Output:
+     
+	 vertxdev   service/account-vertx-service     NodePort    10.152.183.236   <none>       80:31145/TCP  
+
+Step 3: From above the exposed listen port of the Ingress is 31145.
+So, on Windows Poweshell run the Port Forwarding command "netsh interface portproxy add v4tov4 listenport=[PORT] listenaddress=0.0.0.0 connectport=[PORT] connectaddress=[WSL_IP] " as below:
+
+PS C:\Windows\system32> netsh interface portproxy add v4tov4 listenport=31145 listenaddress=0.0.0.0 connectport=31145 connectaddress=172.25.85.52
+==> THIS is the only thing that worked!! Other steps like adding WSL Firewall rules and local ports did NOT help!.
+
+Another instance/example: netsh interface portproxy add v4tov4 listenport=30903 listenaddress=0.0.0.0 connectport=30903 connectaddress=172.25.85.52
+
+This works! And now http://localhost:31145/vertx/hello?name=RK  returns the response.
+
+
+The following does NOT seem to have any effects:
+
+	netsh interface portproxy add v4tov4 listenport=80 listenaddress=0.0.0.0 connectport=80 connectaddress=172.25.85.52
+	netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=8080 connectaddress=172.25.85.52
+
+====== IF the above step does not work, TRY opening windows firewall from Powershell as follows ======================
+
+
+New-NetFirewallRule -DisplayName "WSL" -Direction Inbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+New-NetFirewallRule -DisplayName "WSL" -Direction Outbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+
+To open Windows Firewall for local ports, run on Powershell: Make sure include the ports to open up!
+
+New-NetFirewallRule -DisplayName "WSL2 Port Bridge" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 80,443,30329,10000,3000,5000
+============================================================================================================================
+ 
+
+To check the forwarded ports on Windows Powershell:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	C:\Windows\system32> netsh interface portproxy show v4tov4
+
+To open microk8s dashboard from Windows machine (on WSL/Ubuntu first run: $ microk8s dashboard-proxy  ==> then copy the authn token from terminal):
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Then go to  https://127.0.0.1:10443
+
+
+Note: The above port forwarding does not work after a restart and both WSL/Ubuntu and Windows has a different IP address!!
+
+================================================================
+Ubuntu/Linux/WSL etc:
+================================================================
+
+1. Find out Ubuntu version:
+	$ lsb_release -a
+
+================================================================
+Kubernetes, kubectl, Microk8s, Minikube etc:
+================================================================
+
+Ref: Kubectl cheatsheet:  https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
+1. Kubectl Get all pods, services, ==> everything from all namespaces:
+	$ kubectl get all --all-namespaces
+   For microk8s run:  $ microk8s kubectl get all --all-namespaces
+
+2. To get all deployed Pods in the default namespace:
+ 	$ kubectl get pods
+   For microk8s run: $ microk8s kubectl get pods
+
+3. To get all deployed Pods in ALL namespaces:
+	$ kubectl get pods --all-namespaces   OR for microk8s: $ microk8s kubectl get pods --all-namespaces
+   To get all deployed services in ALL namespaces:
+	$ kubectl get services --all-namespaces
+   OR:	$ microk8s kubectl get services --all-namespaces
+
+4. To get all deployed pods, services etc from a given namespace (say, vertxdev):
+	$ kubectl get services --namespace=vertxdev
+	$ kubectl get pods --namespace=vertxdev
+OR for microk8s:
+	$ microk8s kubectl get pods --namespace=vertxdev
+	$ microk8s kubectl get services --namespace=vertxdev
+	
+	$ microk8s kubectl delete services account-vertx-service
+	
+5.	To delete a deployment:
+	$ microk8s kubectl delete -n vertxdev deployment.apps/account-vertx-service
+	$ microk8s kubectl delete -n default deployment deployment.apps/account-vertx-service  ==> specifying the resource type 'deployment' is redundant, and is not necessary
+	
+6.	To delete a service:
+	$ microk8s kubectl delete -n vertxdev service/account-vertx-service
+
+7. List all namespaces:  Ref: https://kodekloud.com/blog/kubectl-create-namespace/
+	kubectl get namespaces
+
+8. To create a new namespace called 'vertxdev' : Ref: https://kodekloud.com/blog/kubectl-create-namespace/
+	kubectl create namespace vertxdev
+
+9. Tail application Logs on Kubernetes:
+Ref: https://signoz.io/blog/kubectl-logs-tail/
+
+	To follow/stream logs:
+	$ microk8s kubectl logs -n vertxdev --follow pod/account-vertx-service-678bd446cd-psfpn
+
+	To tail the latest 'n' ()=10) number of lines and to stream/follow:
+	$ microk8s kubectl logs -n vertxdev -f --tail=10 pod/account-vertx-service-678bd446cd-psfpn 
+
+10."Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
+Ref: https://komodor.com/learn/kubectl-scale-deployment-the-basics-and-a-quick-tutorial/
+Example:  $ microk8s kubectl scale --replicas=3 deployment.apps/account-vertx-service 
+
+
+===========================================================================
+Frequently Used Commands:
+===========================================================================
+
+./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
+
+microk8s kubectl get all --namespace=vertxdev
+
+microk8s kubectl get services --namespace=vertxdev
+
+
+Native image build/deploy to k8s:
+./mvnw clean package -Dnative -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
+
+WSL Open Windows Firewall:
+	Step 1: From WSL/Ubuntu:
+		$ ifconfig
+		Output:
+			eth0: 
+					inet 172.25.85.52  netmask 255.255.240.0  broadcast 172.25.95.255
+					inet6 fe80::215:5dff:fe53:7c27  prefixlen 64  scopeid 0x20<link>
+					
+	Step 2: From Ubuntu/WSL:
+		$ microk8s kubectl get all -n vertxdev
+	
+	Output:
+		vertxdev   service/account-vertx-service     NodePort    10.152.183.236   <none>       80:31145/TCP  
+
+	Step 3: From above the exposed listen port of the Ingress is 31145.
+	So, on Windows Poweshell run the Port Forwarding command "netsh interface portproxy add v4tov4 listenport=[PORT] listenaddress=0.0.0.0 connectport=[PORT] connectaddress=[WSL_IP] " as below:
+
+	PS C:\Windows\system32> netsh interface portproxy add v4tov4 listenport=31145 listenaddress=0.0.0.0 connectport=31145 connectaddress=172.25.85.52
+==> THIS is the only thing that worked!! Other steps like adding WSL Firewall rules and local ports did NOT help!.
+
+netsh interface portproxy add v4tov4 listenport=31323 listenaddress=0.0.0.0 connectport=31323 connectaddress=172.25.85.52
+
+==================================================================================================================
+Linux Commands
+==================================================================================================================
+1. CPU usage: top
+	$ top
+
+2. CPU usage: mpstat
+	$ mpstat
+Ref:https://phoenixnap.com/kb/check-cpu-usage-load-linux
+
+3. CPU, Disk and Network utilization: nmon : Ref: https://phoenixnap.com/kb/check-cpu-usage-load-linux
+	Install using: sudo apt-get install nmon
+
+	Run using: 
+		$ nmon
+		
+4. Linux/Ubuntu adding new user. Especially useful after installing WSL on windows and the default root login comes up with no password and no other users.
+Ref: https://linuxhandbook.com/useradd-vs-adduser/
+	
+	$ useradd rkoolath
+
+5. Linux/Ubuntu adding (or changing or removing) password for a user. Especially useful after installing WSL, the default root login comes up with no password.
+Ref: https://www.geeksforgeeks.org/passwd-command-in-linux-with-examples/
+
+	$ sudo passwd rkoolath
+
+6. Adding a user to sudoers file, (i.e. to sudo group):
+Ref: https://linuxize.com/post/how-to-add-user-to-sudoers-in-ubuntu/
+
+	$ usermod -aG sudo username
+
+
+6. Linux/Ubuntu switching from one user to another in the terminal. Handy when WSL starts with root user logged in.
+Ref: https://unix.stackexchange.com/questions/3568/how-to-switch-between-users-on-one-terminal
+
+	$ whoami
+	root
+	
+	$ su - rkoolath
+	Password: <password of the user rkoolath>
+	
+	$ whoami
+	rkoolath
+	
+	$ exit
+
+
+
+====================================================================================================================
+Git Commands
+====================================================================================================================
+1. Git & GitHub configs: 
+ Ref 1: https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup
+ Ref 2: https://www.aicg.com/blog/how-to-show-or-change-your-git-username-or-email-address-from-terminal/
+
+ The Github URL for this repository is: https://github.com/jeevkool/Quarkus_Vertx.git
+
+ Add global git username and password for GitHub authentication, as follows at the Git command prompt:
+
+		git config --global user.name "jeevkool"
+		git config --global user.email jeevkool@hotmail.com
+		git config --global user.password Key2free!
+
+2. Verify by listing the Git configs:
+
+		$ git config --list
+		
+3. Adding GitHub respository to Visual Studio Code:
+On the VS Code Left side Ribbon, go to 'Source Control'. (Alternative: Ctrl+Shift+G G). THEN from the menu to the right of 'SOURCE CONTROL' click on '...' then pick 'Remote' > 'Add Remote' 
+And then add the GitHub URL to the repository. Give it a name when it asks. Preferable GitHub <repository name>
+
+4. To add files and push/upload changes to the GitHub respository ==> Either select a Commit & Push option from the Drop-Down of the Blue Button  "√ Commit" right below 'SOURCE CONTROL'.
+Or first do a commit there, and then do the Push.
+
+====================================================================================================================
+Rancher Kubernetes and K3S
+====================================================================================================================
+1. Rancher Desktop Kubernetes: Installation guide: 
+https://docs.rancherdesktop.io/getting-started/installation/#linux
+
