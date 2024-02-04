@@ -306,6 +306,24 @@ $ sudo usermod -aG docker $USER
 NEXT : Reboot Ubuntu for the above changes to take effect!!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+================================
+ START / STOP Docker daemon:
+	Ref: https://stackoverflow.com/questions/42365336/how-to-stop-docker-under-linux
+
+		$ sudo systemctl stop docker
+		$ sudo systemctl start docker
+
+	If there is no systemctl, or started Docker by 'service' THEN:
+		$ sudo service docker start
+		$ sudo service docker stop
+	================================
+	
+	Remove stopped Docker containers:
+	Ref: https://middleware.io/blog/docker-cleanup/
+
+	To remove stopped containers:
+		$ docker container rm $(docker container ls -aq) 
+
 
 STEP 2. Install Microk8s locally:  https://ubuntu.com/tutorials/install-a-local-kubernetes-with-microk8s#1-overview
 
@@ -645,12 +663,6 @@ Then go to  https://127.0.0.1:10443
 
 Note: The above port forwarding does not work after a restart and both WSL/Ubuntu and Windows has a different IP address!!
 
-================================================================
-Ubuntu/Linux/WSL etc:
-================================================================
-
-1. Find out Ubuntu version:
-	$ lsb_release -a
 
 ================================================================
 Kubernetes, kubectl, Microk8s, Minikube etc:
@@ -744,9 +756,14 @@ WSL Open Windows Firewall:
 
 netsh interface portproxy add v4tov4 listenport=31323 listenaddress=0.0.0.0 connectport=31323 connectaddress=172.25.85.52
 
-==================================================================================================================
-Linux Commands
-==================================================================================================================
+
+================================================================
+Ubuntu/Linux/WSL etc:
+================================================================
+
+0. Find out Ubuntu version:
+	$ lsb_release -a
+
 1. CPU usage: top
 	$ top
 
@@ -829,6 +846,50 @@ Ref: https://www.git-tower.com/learn/git/faq/git-force-pull
 	
 	First do: $ git reset --hard
 	Then do: $ git pull
+
+================================================================
+Docker Commands:
+================================================================
+1: Install Docker on Ubuntu: Ref: https://www.simplilearn.com/tutorials/docker-tutorial/how-to-install-docker-on-ubuntu
+IGNORE other steps/commands in the above article, like uninstall first, using snap etc. ONLY the below steps/commands are necessary:
+
+	$ sudo apt-get update
+	$ sudo apt install docker.io
+
+Verify using:
+	$ docker --version
+	AND
+	$ sudo docker run hello-world
+
+	To display all the containers pulled, use the following command:
+		$ sudo docker ps -a
+
+2. IMPORTANT: To be able to Execute the Docker Command Without Sudo: 
+	First, establish the Docker Group:
+
+	$ sudo groupadd docker
+
+Next, add the user in the Docker group:
+
+	$ sudo usermod -aG docker $USER
+
+3. START / STOP Docker daemon:
+	Ref: https://stackoverflow.com/questions/42365336/how-to-stop-docker-under-linux
+
+		$ sudo systemctl stop docker
+		$ sudo systemctl start docker
+
+	If there is no systemctl, or started Docker by 'service' THEN:
+		$ sudo service docker start
+		$ sudo service docker stop
+	================================
+
+4. Remove stopped Docker containers:
+	Ref: https://middleware.io/blog/docker-cleanup/
+
+	To remove stopped containers:
+		$ docker container rm $(docker container ls -aq) 
+
 
 	
 ====================================================================================================================
