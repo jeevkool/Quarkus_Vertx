@@ -83,6 +83,9 @@ Vertx Building Verticles for EventBus: https://quarkus.io/guides/vertx-reference
 ====>> USING THE EVENT BUS  << ====================
 Ref: https://quarkus.io/guides/reactive-event-bus
 
+
+
+
 ___________________________________
 Errors & Fixes:
 ===================================
@@ -126,6 +129,7 @@ Ref: https://github.com/microsoft/WSL/issues/5976
 	It then gives the error: "{"exceptionType":"io.vertx.core.VertxException","code":500,"error":"java.net.MalformedURLException: Accessing a URL protocol that was not enabled. The URL protocol https is supported but not enabled by default. It must be enabled by adding the --enable-url-protocols=https option to the native-image command."}"
 
 Solution REF: https://quarkus.io/guides/native-and-ssl
+
 Solution:
 	To fix this add the following property to application.properties 
 	quarkus.ssl.native=true     ==> and clean rebuild the native image using "mvnw clean install -Dnative"
@@ -814,6 +818,19 @@ And then add the GitHub URL to the repository. Give it a name when it asks. Pref
 4. To add files and push/upload changes to the GitHub respository ==> Either select a Commit & Push option from the Drop-Down of the Blue Button  "√ Commit" right below 'SOURCE CONTROL'.
 Or first do a commit there, and then do the Push.
 
+5. Developer 1/Machine 1 changes pushed to Git, AND Developer 2/Machine to PULL to their copy.
+	First have Dev 1 do Commit & Push.
+	Then have Dev 2 on machine 2 to do:
+		$ git pull.
+	If this shows merge conflicts with locally modified files, Dev 2 has to do a "commit" and "push" first before pulling.
+	If Dev 2 or Machine 2 is a build machine (no changes made there) and still it shows conflict, then do a Hard reset to Discard local changes, by:
+
+Ref: https://www.git-tower.com/learn/git/faq/git-force-pull
+	
+	First do: $ git reset --hard
+	Then do: $ git pull
+
+	
 ====================================================================================================================
 Rancher Kubernetes and K3S
 ====================================================================================================================
