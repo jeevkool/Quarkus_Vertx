@@ -749,23 +749,57 @@ Ref:https://phoenixnap.com/kb/check-cpu-usage-load-linux
 
 	Run using: 
 		$ nmon
+		
+4. Linux/Ubuntu adding new user. Especially useful after installing WSL on windows and the default root login comes up with no password and no other users.
+Ref: https://linuxhandbook.com/useradd-vs-adduser/
+	
+	$ useradd rkoolath
 
+5. Linux/Ubuntu adding (or changing or removing) password for a user. Especially useful after installing WSL, the default root login comes up with no password.
+Ref: https://www.geeksforgeeks.org/passwd-command-in-linux-with-examples/
+
+	$ sudo passwd rkoolath
+
+6. Adding a user to sudoers file, (i.e. to sudo group):
+Ref: https://linuxize.com/post/how-to-add-user-to-sudoers-in-ubuntu/
+
+	$ usermod -aG sudo username
+
+
+6. Linux/Ubuntu switching from one user to another in the terminal. Handy when WSL starts with root user logged in.
+Ref: https://unix.stackexchange.com/questions/3568/how-to-switch-between-users-on-one-terminal
+
+	$ whoami
+	root
+	
+	$ su - rkoolath
+	Password: <password of the user rkoolath>
+	
+	$ whoami
+	rkoolath
+	
+	$ exit
 
 
 
 ====================================================================================================================
 Git Commands
 ====================================================================================================================
-1. Set global Git username, email, & password:
-Ref: https://www.aicg.com/blog/how-to-show-or-change-your-git-username-or-email-address-from-terminal/
+1. Git & GitHub configs: 
+ Ref 1: https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup
+ Ref 2: https://www.aicg.com/blog/how-to-show-or-change-your-git-username-or-email-address-from-terminal/
 
-	$ git config --global user.name jeevkool
+ The Github URL for this repository is: https://github.com/jeevkool/Quarkus_Vertx.git
 
-	$ git config --global user.email "jeevkool@hotmail.com"
+ Add global git username and password for GitHub authentication, as follows at the Git command prompt:
 
+		git config --global user.name "jeevkool"
+		git config --global user.email jeevkool@hotmail.com
+		git config --global user.password Key2free!
 
-2. List the Git current configurations, like user.name, user.email etc:
-	$ git config –list
+2. Verify by listing the Git configs:
+
+		$ git config --list
 
 ====================================================================================================================
 Rancher Kubernetes and K3S
