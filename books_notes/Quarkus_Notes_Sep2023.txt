@@ -228,12 +228,12 @@ $ sudo cp ~/Downloads/graalvm-jdk-21_linux-x64_bin.tar.gz /usr/lib/jvm
 Extract jar.gz:
 $ cd /usr/lib/jvm/
 $ sudo tar -xzf ./graalvm-jdk-21_linux-x64_bin.tar.gz
-$ sudo chmod -R a+rx ./graalvm-jdk-21.0.1+12.1
+$ sudo chmod -R a+rx ./graalvm-jdk-21.0.2+13.1
 
 Set environment variables ==> Needs Ubuntu restart to take effect.
 $  sudo nano /etc/environment
-Add "/usr/lib/jvm/graalvm-jdk-21.0.1+12.1/bin" to PATH
-Define JAVA_HOME="/usr/lib/jvm/graalvm-jdk-21.0.1+12.1"
+Add "/usr/lib/jvm/graalvm-jdk-21.0.2+13.1/bin" to PATH
+Define JAVA_HOME="/usr/lib/jvm/graalvm-jdk-21.0.2+13.1"
 
 $ source /etc/environment   ==> to take effect immediately without restarting.
 NOTE: This is not taking effect after logout/login.
@@ -243,9 +243,10 @@ Update /etc/profile with the following towards the end of the file:
 $ sudo nano /etc/profile
 
 
-export JAVA_HOME="/usr/lib/jvm/graalvm-jdk-21.0.1+12.1"
-export GRAALVM_HOME="/usr/lib/jvm/graalvm-jdk-21.0.1+12.1"
+export JAVA_HOME="/usr/lib/jvm/graalvm-jdk-21.0.2+13.1"
+export GRAALVM_HOME="/usr/lib/jvm/graalvm-jdk-21.0.2+13.1"
 export PATH=$JAVA_HOME/bin:$PATH
+
 
 $ sudo source /etc/profile
 
@@ -267,6 +268,11 @@ $ apt-get install gcc-multilib
 REF: https://stackoverflow.com/questions/61725948/how-to-solve-error-message-gcc-command-not-found-only-with-arguments-on-ub
 
 =================================== END of Install GraalVM/JDK=========================
+
+=====================================================================================================================================================================
+NOTE: Docker install, below, is not required for native image build using "./mvnw clean install -Dnative". BUT the above steps of "apt install build-essential" && 
+"apt install zlib1g-dev" && "$ apt-get install gcc-multilib" ALL are required. Otherwise it fails with ERROR.
+=====================================================================================================================================================================
 
 
 Step 1: Then installed Docker on Ubuntu: Ref: https://www.simplilearn.com/tutorials/docker-tutorial/how-to-install-docker-on-ubuntu
