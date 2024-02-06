@@ -270,6 +270,60 @@ $ apt-get install gcc-multilib
 
 REF: https://stackoverflow.com/questions/61725948/how-to-solve-error-message-gcc-command-not-found-only-with-arguments-on-ub
 
+
+ERROR: when running "sudo apt install zlib1g-dev" on WSL/Ubuntu, Due to system clock/time not in sync with location and Windows time!
+~~~~~~~~~~~~~~~~~~~
+"
+	E: Failed to fetch http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.35-0ubuntu3.4_amd64.deb  404  Not Found [IP: 91.189.91.82 80]
+	E: Failed to fetch http://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_5.15.0-89.99_amd64.deb  404  Not Found [IP: 91.189.91.82 80]
+	E: Failed to fetch http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.35-0ubuntu3.4_amd64.deb  404  Not Found [IP: 91.189.91.82 80]
+"
+
+AND when $sudo apt update is run, the following error:
+E: Release file for http://archive.ubuntu.com/ubuntu/dists/jammy-updates/InRelease is not valid yet (invalid for another 2h 54min 42s). Updates for this repository will not be applied.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Try FIX 1: Try checking Ubuntu time using "$ timedatectl" and compare that to Windows time. Sync Windows time, Turn on Auto Sync and Location services. Restart Windows and see if it fixes the issue.
+This did NOT work!
+
+FIXED! : Ref: https://tecadmin.net/setup-time-synchronisation-ntp-server-on-ubuntu-linuxmint/
+Step 1: First remove the broken package "zlib1g-dev"
+		$ sudo apt remove zlib1g-dev
+		$ sudo apt --fix-broken install
+		$ sudo apt --fix-missing install
+		$ sudo apt autoremove  ==> To remove broken packages.
+		$ sudo apt update
+		$ sudo apt upgrade
+
+Step 2: Install ntp: 
+	$ sudo apt-get install ntp
+
+Step 3: Open Linux firewall for NTP:
+	$ sudo ufw allow 123/udp
+	
+Step 4: Restart NTP service:
+	$ sudo systemctl restart ntp
+
+Step 5: Check the time sync status: 
+	$ timedatectl   ==> It should show proper time now!
+
+Ref: https://askubuntu.com/questions/81293/what-is-the-command-to-update-time-and-date-from-internet
+
+Check the time by  $ timedatectl
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Step 6: Restart Ubuntu and log back in. 
+	Now install "zlib1g:amd64" :	
+	$ sudo apt install zlib1g:amd64
+	$ sudo apt update
+	$ sudo apt upgrade
+
+==> and THEN retry installing zlib1g-dev:
+	$ sudo apt install zlib1g-dev
+	$ sudo apt update
+	$ sudo apt upgrade
+
+
 =================================== END of Install GraalVM/JDK=========================
 
 =====================================================================================================================================================================
@@ -324,7 +378,11 @@ NEXT : Reboot Ubuntu for the above changes to take effect!!
 		$ docker container rm $(docker container ls -aq) 
 
 
-STEP 2. Install Microk8s locally:  https://ubuntu.com/tutorials/install-a-local-kubernetes-with-microk8s#1-overview
+STEP 2. Install Microk8s locally: 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GOOD Reference! Ref 1: https://linuxconfig.org/install-and-use-microk8s-on-ubuntu
+
+ https://ubuntu.com/tutorials/install-a-local-kubernetes-with-microk8s#1-overview
 
 $ sudo snap install microk8s --classic
 
