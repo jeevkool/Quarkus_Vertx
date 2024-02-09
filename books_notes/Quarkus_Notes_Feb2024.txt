@@ -906,7 +906,8 @@ Ref: https://stackoverflow.com/questions/51584765/how-do-you-install-multiple-se
 IaC, Ansible, DevOps, Jenkins etc.
 ====================================================================================================================
 1. ChatGPT guidance:
-	Prompt: I need to automate using IaC and script download, installation, and configuration of JDK, Doker, MicroK8s, apt install build-essential, and, apt install build-essential zlib1g-dev on Ubuntu linux. What is the best and user friendly opensource IaC tool I can use on Ubuntu for this? 
+	Prompt 1: I need to automate using IaC and script download, installation, and configuration of JDK, Doker, MicroK8s, apt install build-essential, and, apt install build-essential zlib1g-dev on Ubuntu linux. What is the best and user friendly opensource IaC tool I can use on Ubuntu for this? 
+	Prompt 2: Now modify the above playbook to download JDK using wget https://download.oracle.com/graalvm/21/latest/graalvm-jdk-21_linux-x64_bin.tar.gz   and create directory /usr/lib/jvm/  and extract JDK archive to that location. After installation edit /etc/profile to append export statements for JAVA_HOME and GRAALVM_HOME pointing to jdk install location, and append JAVA_HOME/bin location to PATH variable.
 
 	Response: you can leverage popular Infrastructure as Code (IaC) tools such as Ansible, Terraform, or Chef. Each of these tools has its strengths and can be used to achieve the desired automation tasks effectively.
 
@@ -927,14 +928,40 @@ Here's a basic example playbook ('install_software.yaml'):
 
 ---
 
+---
+
 - name: Install JDK, Docker, MicroK8s, and dependencies
   hosts: localhost
   become: yes
   tasks:
-    - name: Install OpenJDK
-      apt:
-        name: openjdk-11-jdk
-        state: present
+    - name: Create directory for JDK installation
+      file:
+        path: /usr/lib/jvm
+        state: directory
+
+    - name: Download JDK tar.gz file
+      get_url:
+        url: https://download.oracle.com/graalvm/21/latest/graalvm-jdk-21_linux-x64_bin.tar.gz
+        dest: /tmp/graalvm-jdk-21_linux-x64_bin.tar.gz
+
+    - name: Extract JDK archive
+      ansible.builtin.unarchive:
+        src: /tmp/graalvm-jdk-21_linux-x64_bin.tar.gz
+        dest: /usr/lib/jvm
+        remote_src: yes
+
+    - name: Append JAVA_HOME and GRAALVM_HOME to /etc/profile
+      lineinfile:
+        path: /etc/profile
+        line: |
+          export JAVA_HOME=/usr/lib/jvm/graalvm-jdk-21
+          export GRAALVM_HOME=/usr/lib/jvm/graalvm-jdk-21
+
+    - name: Append JDK bin directory to PATH in /etc/profile
+      lineinfile:
+        path: /etc/profile
+        line: 'export PATH="$PATH:/usr/lib/jvm/graalvm-jdk-21/bin"'
+
 
     - name: Install Docker
       apt:
