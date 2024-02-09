@@ -893,6 +893,77 @@ Ref: https://unix.stackexchange.com/questions/3568/how-to-switch-between-users-o
 
 	Note: Make sure the "-InterfaceAlias" above is exactly what it shows from "ipconfig" from commandline.
 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9. WSL how to run multiple instances of the same Linux dist/version, by back-up/archive an instance, and import from archive.
+Ref: https://stackoverflow.com/questions/51584765/how-do-you-install-multiple-separate-instances-of-ubuntu-in-wsl
+
+	wsl --export Ubuntu ubuntu.tar
+	wsl --import UbuntuRuby .\UbuntuRuby ubuntu.tar
+	wsl --import UbuntuPython .\UbuntuPython ubuntu.tar
+	wsl --import UbuntuDotNet .\UbuntuDotNet ubuntu.tar
+	wsl -d UbuntuRuby
+
+====================================================================================================================
+IaC, Ansible, DevOps, Jenkins etc.
+====================================================================================================================
+1. ChatGPT guidance:
+	Prompt: I need to automate using IaC and script download, installation, and configuration of JDK, Doker, MicroK8s, apt install build-essential, and, apt install build-essential zlib1g-dev on Ubuntu linux. What is the best and user friendly opensource IaC tool I can use on Ubuntu for this? 
+
+	Response: you can leverage popular Infrastructure as Code (IaC) tools such as Ansible, Terraform, or Chef. Each of these tools has its strengths and can be used to achieve the desired automation tasks effectively.
+
+However, considering the requirement for a user-friendly open-source IaC tool specifically on Ubuntu, Ansible stands out as a top choice due to its simplicity, agentless architecture, and broad community support. Ansible is well-suited for automating tasks on Ubuntu systems and offers easy-to-understand YAML-based playbooks for defining infrastructure configurations.
+
+Here's how you can use Ansible to automate the installation and configuration of the mentioned software packages:
+
+Install Ansible:
+First, ensure that Ansible is installed on your Ubuntu system. 
+You can install it via the package manager:
+
+	sudo apt update
+	sudo apt install ansible
+
+Write Ansible Playbooks:
+Here's a basic example playbook ('install_software.yaml'):
+
+
+---
+
+- name: Install JDK, Docker, MicroK8s, and dependencies
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Install OpenJDK
+      apt:
+        name: openjdk-11-jdk
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Install MicroK8s
+      apt:
+        name: microk8s
+        state: present
+
+    - name: Install build-essential
+      apt:
+        name: build-essential
+        state: present
+
+    - name: Install zlib1g-dev
+      apt:
+        name: zlib1g-dev
+        state: present
+
+----
+
+Run Ansible Playbooks: Execute the playbook on your Ubuntu system using the ansible-playbook command:
+
+
+	ansible-playbook install_software.yaml
+
+
 
 ====================================================================================================================
 Git Commands
