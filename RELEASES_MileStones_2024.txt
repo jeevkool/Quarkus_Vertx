@@ -1,9 +1,11 @@
 
-====================================================================================================================
-RELEASES & Milestones: 15-Feb-2024, JDK 17 on Microk8s (config option1).
-====================================================================================================================
+======================================================================================================
+RELEASES & Milestones: 15-Feb-2024, Tested with GraalVM JDK 17 & Native image using JDK 21 on Microk8s 
+(Config options 1 & 3 in the Notes).  
+JDK 21 with Native image to microk8s ==> see Section 2 below.
+======================================================================================================
 
-15-Feb-2024 Release, Deployed on local Microk8s cluster, all TESTS PASSED. kubectl scale tested successfully. 
+15-Feb-2024 Release 1, V01, Deployed on local Microk8s cluster, all TESTS PASSED. kubectl scale tested successfully. 
 On Pop OS 22.04 LTS, GraalVM version 17, and Docker version 24.0.5 & Microk8s version 24.0.5.
 -------------------------------------------------------------------------------------------------------------------------------------
 
@@ -109,11 +111,87 @@ TEST 3: kubectl scale
 ~~~~~~~~~~~~~~~~~~~~~
 Scale Up to 5: (Original deployment started with 3 replicas using: quarkus.kubernetes.replicas=3 in application.properties)
 
-    $ kubectl scale -n vertxdev deployment account-vertx-service --replicas=4
+    $ kubectl scale -n vertxdev deployment account-vertx-service --replicas=5
 
 Scale down to 2:
 
     $ kubectl scale -n vertxdev deployment account-vertx-service --replicas=2
 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+======================================================================================================
+SECTION 2 : Release 2, V02. Native image built with GraalVM JDK 21 deployed to microk8s. 
+======================================================================================================
+15-Feb-2024 Release 2, V02, Deployed on local Microk8s cluster, TESTS PASSED - except for the ones accessing two text files on disk ('lorem' and 'book').
+kubectl scale tested successfully. 
+On Pop OS 22.04 LTS, GraalVM version 21, and Docker version 24.0.5 & Microk8s version 24.0.5.
+-------------------------------------------------------------------------------------------------------------------------------------
+
+DEPLOYMENT Configurations:
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Configuration 3 of 3: (Native image built using GraalVM 21 on local machine && Maven pom.xml, using -Dnative switch): 
+service-type=node-port  &&  ingress.expose=true
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Build run using:
+$ ./mvnw clean install -Dnative -DskipTests -Dquarkus.kubernetes.deploy=true
+
+pom.xml:
+     <maven.compiler.release>21</maven.compiler.release>
+     <quarkus.platform.version>3.7.1</quarkus.platform.version>
+    <surefire-plugin.version>3.2.5</surefire-plugin.version>
+
+
+$ kubectl get services --namespace=vertxdev
+
+
+TEST 1:
+~~~~~~
+
+kubectl get all --namespace=vertxdev  
+    OR
+kubectl get services --namespace=vertxdev
+
+Gives the following output for service:
+
+NAME                    TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+account-vertx-service   NodePort   10.152.183.194   <none>        80:30370/TCP   44s
+
+
+Using the cluster IP above, form the test URL like:  http://10.152.183.194/vertx/lorem   OR http://10.152.183.194/vertx/web
+http://10.152.183.194/vertx/hello?name=rkool
+
+ERROR : the /lorem and /book URLs failed the TEST, as the native image build did NOT copy those two text files to the image.
+NOTE: This needs fix. The other tests PASSED.
+
+
+TEST 2:
+~~~~~~
+
+$ kubectl get ingresses --namespace=vertxdev  
+Gives the following output:
+
+    NAME                    CLASS    HOSTS   ADDRESS     PORTS   AGE
+    account-vertx-service   <none>   *       127.0.0.1   80      4h54m
+
+
+From that the server IP is 127.0.0.1.  And from TEST 1 above using kubectl get services, the ingress port is 30370, 
+form the URL: http://127.0.0.1:30370/vertx/book  OR http://127.0.0.1:30370/vertx/lorem  OR  http://127.0.0.1:30370/vertx/web  to test.
+
+ERROR : As before in TEST 1: the /lorem and /book URLs failed the TEST, as the native image build did NOT copy those two text files to the image.
+NOTE: This needs fix. The other tests PASSED.
+
+
+TEST 3: kubectl scale
+~~~~~~~~~~~~~~~~~~~~~
+Scale Up to 5: (Original deployment started with 3 replicas using: quarkus.kubernetes.replicas=3 in application.properties)
+
+    $ kubectl scale -n vertxdev deployment account-vertx-service --replicas=5
+
+Scale down to 2:
+
+    $ kubectl scale -n vertxdev deployment account-vertx-service --replicas=2
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
