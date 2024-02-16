@@ -250,6 +250,12 @@ export JAVA_HOME="/usr/lib/jvm/graalvm-jdk-21.0.2+13.1"
 export GRAALVM_HOME="/usr/lib/jvm/graalvm-jdk-21.0.2+13.1"
 export PATH=$JAVA_HOME/bin:$PATH
 
+OR for JDK 17:
+
+export JAVA_HOME="/usr/lib/jvm/graalvm-jdk-17.0.10+11.1"
+export GRAALVM_HOME="/usr/lib/jvm/graalvm-jdk-17.0.10+11.1"
+export PATH=$JAVA_HOME/bin:$PATH
+
 
 $ sudo source /etc/profile
 
@@ -263,10 +269,10 @@ Error again:
  "/usr/bin/ld: cannot find -lz: No such file or directory"
 
 To fix:  $ sudo apt install zlib1g-dev
-REF: https://github.com/oracle/graal/issues/2727
+REF: https://github.com/oracle/graal/issuessudo apt-get install build-essential/2727
 
 Also did: 
-$ apt-get install gcc-multilib
+$ sudo apt-get install gcc-multilib
 
 REF: https://stackoverflow.com/questions/61725948/how-to-solve-error-message-gcc-command-not-found-only-with-arguments-on-ub
 
@@ -397,10 +403,10 @@ AND THEN configure firewall to allow pod-to-pod and pod-to-internet communicatio
 
 AND THEN add the current user to the microk8s group, so there's no need to do sudo every time:
 
-	$ sudo usermod -a -G microk8s rkoolath
+	$ sudo usermod -a -G microk8s $USER
 	$ cd ~/
 	$ mkdir .kube
-	$ sudo chown -R rkoolath ~/.kube
+	$ sudo chown -R $USER ~/.kube
 
 NOTE: After installing enable the essential add ons, as follows:
 
@@ -485,6 +491,7 @@ $ ./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus
 	After successfully deploying to Kubernetes cluster as above: Listed all currently running pods, services etc using the command:
 
 	$ microk8s kubectl get all --all-namespaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	It listed services and among that was the App/service:
 
@@ -786,10 +793,13 @@ Ref: https://signoz.io/blog/kubectl-logs-tail/
 	To tail the latest 'n' ()=10) number of lines and to stream/follow:
 	$ microk8s kubectl logs -n vertxdev -f --tail=10 pod/account-vertx-service-678bd446cd-psfpn 
 
+$ kubectl logs -n vertxdev -f --tail=50 pod/account-vertx-service-678bd446cd-psfpn 
+
 10."Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
 Ref: https://komodor.com/learn/kubectl-scale-deployment-the-basics-and-a-quick-tutorial/
-Example:  $ microk8s kubectl scale --replicas=3 deployment.apps/account-vertx-service 
+Example:  $ microk8s kubectl scale -n vertxdev deployment account-vertx-service --replicas=4
 
+kubectl scale -n vertxdev deployment account-vertx-service --replicas=4
 
 ===========================================================================
 Frequently Used Commands:
@@ -800,6 +810,13 @@ Frequently Used Commands:
 microk8s kubectl get all --namespace=vertxdev
 
 microk8s kubectl get services --namespace=vertxdev
+
+kubectl get services --namespace=vertxdev
+
+kubectl get pods --namespace=vertxdev
+
+
+kubectl logs -n vertxdev -f --tail=50 account-vertx-service 
 
 
 Native image build/deploy to k8s:
@@ -1080,4 +1097,9 @@ Rancher Kubernetes and K3S
 ====================================================================================================================
 1. Rancher Desktop Kubernetes: Installation guide: 
 https://docs.rancherdesktop.io/getting-started/installation/#linux
+
+
+====================================================================================================================
+RELEASES & Milestones:
+====================================================================================================================
 

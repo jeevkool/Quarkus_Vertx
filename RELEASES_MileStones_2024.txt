@@ -1,0 +1,106 @@
+
+====================================================================================================================
+RELEASES & Milestones: 15-Feb-2024, JDK 17 on Microk8s (config option1).
+====================================================================================================================
+
+15-Feb-2024 Release, Deployed on local Microk8s cluster, all TESTS PASSED. kubectl scale tested successfully. 
+On Pop OS 22.04 LTS, GraalVM version 17, and Docker version 24.0.5 & Microk8s version 24.0.5.
+-------------------------------------------------------------------------------------------------------------------------------------
+
+DEPLOYMENT Configurations:
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Configuration 1 of 3: (JVM image usng JDK 17 on local machine && Maven pom.xml for build, not -Dnative): 
+service-type=node-port  &&  ingress.expose=true
+
+NOTE: Using local JDK 21 and pom.xml maven.compiler.release 21 causes JDK incompatibility error after deployment to k8s. Because the 
+Docker image used from docker file uses JDK 17 (Snippet from Dockerfile.jvm: "FROM registry.access.redhat.com/ubi8/openjdk-17:1.16").
+There is no ubi image available yet with JDK21.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Build run using:
+$ ./mvnw clean install -DskipTests -Dquarkus.kubernetes.deploy=true
+
+pom.xml:
+     <maven.compiler.release>17</maven.compiler.release>
+     <quarkus.platform.version>3.7.1</quarkus.platform.version>
+    <surefire-plugin.version>3.2.5</surefire-plugin.version>
+
+application.properties:
+    quarkus.container-image.group=quarkus-mp
+    quarkus.container-image.name=account-vertx-service
+    quarkus.kubernetes.name=account-vertx-service
+    quarkus.ssl.native=true
+    quarkus.kubernetes.namespace=vertxdev
+
+    quarkus.kubernetes.image-pull-policy=always
+    quarkus.kubernetes.replicas=3
+    quarkus.kubernetes.service-type=node-port
+    quarkus.kubernetes.ingress.expose=true
+
+    quarkus.container-image.insecure=true
+    quarkus.native.container-build=true
+
+    # local registry for microk8s on Ubuntu:
+    quarkus.container-image.registry=localhost:32000
+    quarkus.container-image.push=true
+
+
+=====================================================================================================================================
+Tests:
+=====================================================================================================================================
+Deciding the IP address and listening ports for URLs to test with:
+
+Kubernetes YAML for the service 'account-vertx-service' from microk8s dashboard (choose Edit from the righthand side .. menu)
+has the following snippet:
+
+    --
+        spec:
+        ports:
+            - name: http
+            protocol: TCP
+            port: 80
+            targetPort: 8080
+            nodePort: 32393
+        selector:
+            app.kubernetes.io/name: account-vertx-service
+            app.kubernetes.io/version: 1.0.0-SNAPSHOT
+        clusterIP: 10.152.183.161
+        clusterIPs:
+            - 10.152.183.161
+        type: NodePort
+    --
+
+
+This gives cluster IP 10.152.183.161 and internal port 80, to form the URL: http://10.152.183.161/vertx/lorem
+Also see the two TESTS below for ingress URL.
+
+TEST 1:
+~~~~~~
+
+kubectl get all --namespace=vertxdev  
+    OR
+kubectl get services --namespace=vertxdev
+
+Gives the following output for service:
+
+    NAME                            TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+    service/account-vertx-service   NodePort   10.152.183.161   <none>        80:32393/TCP   178m
+
+Using the cluster IP above, form the test URL like:  http://10.152.183.161/vertx/lorem   OR http://10.152.183.161/vertx/web
+http://10.152.183.161/vertx/hello?name=rkool
+
+
+
+TEST 2:
+~~~~~~
+
+$ kubectl get ingresses --namespace=vertxdev  
+Gives the following output:
+
+    NAME                    CLASS    HOSTS   ADDRESS     PORTS   AGE
+    account-vertx-service   <none>   *       127.0.0.1   80      3h32m
+
+From that the server IP is 127.0.0.1.  And from TEST 1 above using kubectl get services, the ingress port is 32393, 
+form the URL: http://127.0.0.1:32393/vertx/book  OR http://127.0.0.1:32393/vertx/lorem  OR  http://127.0.0.1:32393/vertx/web  to test.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
