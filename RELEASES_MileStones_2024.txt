@@ -103,4 +103,17 @@ Gives the following output:
 From that the server IP is 127.0.0.1.  And from TEST 1 above using kubectl get services, the ingress port is 32393, 
 form the URL: http://127.0.0.1:32393/vertx/book  OR http://127.0.0.1:32393/vertx/lorem  OR  http://127.0.0.1:32393/vertx/web  to test.
 
+
+
+TEST 3: kubectl scale
+~~~~~~~~~~~~~~~~~~~~~
+Scale Up to 5: (Original deployment started with 3 replicas using: quarkus.kubernetes.replicas=3 in application.properties)
+
+    $ kubectl scale -n vertxdev deployment account-vertx-service --replicas=4
+
+Scale down to 2:
+
+    $ kubectl scale -n vertxdev deployment account-vertx-service --replicas=2
+
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
