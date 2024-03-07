@@ -1,0 +1,240 @@
+================================================================
+Ubuntu/Linux etc:
+================================================================
+
+0. Find out Ubuntu version:
+	$ lsb_release -a
+
+1. CPU usage: top
+	$ top
+
+2. CPU usage: mpstat
+	$ mpstat
+Ref:https://phoenixnap.com/kb/check-cpu-usage-load-linux
+
+3. CPU, Disk and Network utilization: nmon : Ref: https://phoenixnap.com/kb/check-cpu-usage-load-linux
+	Install using: sudo apt-get install nmon
+
+	Run using: 
+		$ nmon
+		
+4. Linux/Ubuntu adding new user. Especially useful after installing WSL on windows and the default root login comes up with no password and no other users.
+Ref: https://linuxhandbook.com/useradd-vs-adduser/
+	
+	$ useradd rkoolath
+
+5. Linux/Ubuntu adding (or changing or removing) password for a user. Especially useful after installing WSL, the default root login comes up with no password.
+Ref: https://www.geeksforgeeks.org/passwd-command-in-linux-with-examples/
+
+	$ sudo passwd rkoolath
+
+6. Adding a user to sudoers file, (i.e. to sudo group):
+Ref: https://linuxize.com/post/how-to-add-user-to-sudoers-in-ubuntu/
+
+	$ usermod -aG sudo username
+
+
+6. Linux/Ubuntu switching from one user to another in the terminal. Handy when WSL starts with root user logged in.
+Ref: https://unix.stackexchange.com/questions/3568/how-to-switch-between-users-on-one-terminal
+
+	$ whoami
+	root
+	
+	$ su - rkoolath
+	Password: <password of the user rkoolath>
+	
+	$ whoami
+	rkoolath
+	
+	$ exit
+
+
+=======================================================================================
+WSL, Windows Powershell, Firewall, Linux : commands and fixes
+=======================================================================================
+
+1. WSL Windows Ubuntu not able to connect to update sites or internet (sudo apt update fails to connect!) :
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	FIX (worked): Updating the nameserver to 8.8.8.8 in /etc/resolv.conf
+	Ref: https://github.com/microsoft/WSL/issues/5976
+
+
+2. WSL Enable Windows Firewall: (A browser running on Windows fails to access a webservice or webpage listening on WSL Ubuntu!)
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Run the following to open Windows Defender Firewall, run from Windows Powershell (started in Admin mode):
+	
+		New-NetFirewallRule -DisplayName "WSL" -Direction Inbound  -InterfaceAlias "vEthernet (WSL (Hyper-V firewall))"  -Action Allow
+		New-NetFirewallRule -DisplayName "WSL" -Direction Outbound  -InterfaceAlias "vEthernet (WSL (Hyper-V firewall))"  -Action Allow
+
+	Note: Make sure the "-InterfaceAlias" above is exactly what it shows from "ipconfig" from commandline.
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3. WSL how to run multiple instances of the same Linux dist/version, by back-up/archive an instance, and import from archive.
+Ref: https://stackoverflow.com/questions/51584765/how-do-you-install-multiple-separate-instances-of-ubuntu-in-wsl
+
+	wsl --export Ubuntu ubuntu.tar
+	wsl --import UbuntuRuby .\UbuntuRuby ubuntu.tar
+	wsl --import UbuntuPython .\UbuntuPython ubuntu.tar
+	wsl --import UbuntuDotNet .\UbuntuDotNet ubuntu.tar
+	wsl -d UbuntuRuby
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Quarkus and WSL Windows Port Forwarding Configs and Fixes:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    1. Setting Quarkus Debug port 
+    https://stackoverflow.com/questions/55289627/quarkusio-change-default-debug-port-using-quarkusdev
+    
+    2. Firewall rules & Assigning Static IP Addresses in WSL2
+    https://gist.github.com/wllmsash/1636b86eed45e4024fb9b7ecd25378ce
+    
+    3. Worked! for one of the listen ports only! ==> Port Forwarding from WSL to LAN:
+    Ref: https://jwstanly.com/blog/article/Port+Forwarding+WSL+2+to+Your+LAN/
+    
+    Step 1:	From WSL/Ubuntu:
+        $ ifconfig
+    
+    Output:
+        eth0: 
+                inet 172.25.85.52  netmask 255.255.240.0  broadcast 172.25.95.255
+                inet6 fe80::215:5dff:fe53:7c27  prefixlen 64  scopeid 0x20<link>
+    
+    Step 2: From Ubuntu/WSL:
+        $ microk8s kubectl get all --all-namespaces
+        
+    Output:
+         
+         vertxdev   service/account-vertx-service     NodePort    10.152.183.236   <none>       80:31145/TCP  
+    
+    Step 3: From above the exposed listen port of the Ingress is 31145.
+    So, on Windows Poweshell run the Port Forwarding command "netsh interface portproxy add v4tov4 listenport=[PORT] listenaddress=0.0.0.0 connectport=[PORT] connectaddress=[WSL_IP] " as below:
+    
+    PS C:\Windows\system32> netsh interface portproxy add v4tov4 listenport=31145 listenaddress=0.0.0.0 connectport=31145 connectaddress=172.25.85.52
+    ==> THIS is the only thing that worked!! Other steps like adding WSL Firewall rules and local ports did NOT help!.
+    
+    Another instance/example: netsh interface portproxy add v4tov4 listenport=30903 listenaddress=0.0.0.0 connectport=30903 connectaddress=172.25.85.52
+    
+    This works! And now http://localhost:31145/vertx/hello?name=RK  returns the response.
+    
+    
+    The following does NOT seem to have any effects:
+    
+        netsh interface portproxy add v4tov4 listenport=80 listenaddress=0.0.0.0 connectport=80 connectaddress=172.25.85.52
+        netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=8080 connectaddress=172.25.85.52
+    
+    ====== IF the above step does not work, TRY opening windows firewall from Powershell as follows ======================
+    
+    
+    New-NetFirewallRule -DisplayName "WSL" -Direction Inbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+    New-NetFirewallRule -DisplayName "WSL" -Direction Outbound  -InterfaceAlias "vEthernet (WSL)"  -Action Allow
+    
+    To open Windows Firewall for local ports, run on Powershell: Make sure include the ports to open up!
+    
+    New-NetFirewallRule -DisplayName "WSL2 Port Bridge" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 80,443,30329,10000,3000,5000
+    ============================================================================================================================
+     
+    
+    To check the forwarded ports on Windows Powershell:
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+        C:\Windows\system32> netsh interface portproxy show v4tov4
+    
+    To open microk8s dashboard from Windows machine (on WSL/Ubuntu first run: $ microk8s dashboard-proxy  ==> then copy the authn token from terminal):
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Then go to  https://127.0.0.1:10443
+    
+    
+    Note: The above port forwarding does not work after a restart and both WSL/Ubuntu and Windows has a different IP address!!
+    
+___________________________________
+    Errors & Fixes:
+===================================
+1. So many Errors and failures due to ZScaler client blocking, when code tries to connect over SSL, and K8S tries to connect to repositories over SSL etc.
+    
+    Solution REF 1: https://www.reddit.com/r/techsupport/comments/xm2jng/comment/ivflauk/
+    
+    Solution REF 2: https://stackoverflow.com/questions/75875351/zscaler-cannot-stop-the-service-without-passwords
+    
+    Solution:
+    ~~~~~~~~~~
+    If you have admin rights, you can disable it under Powershell.
+    
+    List the status:
+    Get-NetAdapterBinding -AllBindings -ComponentID ZS_ZAPPRD
+    
+    Disable:
+    Get-NetAdapterBinding -AllBindings -ComponentID ZS_ZAPPRD | Disable-NetAdapterBinding
+    
+    Enable:
+    Get-NetAdapterBinding -AllBindings -ComponentID ZS_ZAPPRD | Enable-NetAdapterBinding
+    
+    
+    WSL Enable Windows Firewall:
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    New-NetFirewallRule -DisplayName "WSL" -Direction Inbound  -InterfaceAlias "vEthernet (WSL (Hyper-V firewall))"  -Action Allow
+    New-NetFirewallRule -DisplayName "WSL" -Direction Outbound  -InterfaceAlias "vEthernet (WSL (Hyper-V firewall))"  -Action Allow
+    
+    Note: Make sure the "-InterfaceAlias" above is exactly what it shows from "ipconfig" from commandline.
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    WSL Windows Ubuntu not able to connect to update sites or internet:
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    FIX (worked): Updating the nameserver to 8.8.8.8 in /etc/resolv.conf
+    Ref: https://github.com/microsoft/WSL/issues/5976
+
+    
+
+2. ERROR: when running "sudo apt install zlib1g-dev" on WSL/Ubuntu, Due to system clock/time not in sync with location and Windows time!
+~~~~~~~~~~~~~~~~~~~
+"
+	E: Failed to fetch http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc-dev-bin_2.35-0ubuntu3.4_amd64.deb  404  Not Found [IP: 91.189.91.82 80]
+	E: Failed to fetch http://security.ubuntu.com/ubuntu/pool/main/l/linux/linux-libc-dev_5.15.0-89.99_amd64.deb  404  Not Found [IP: 91.189.91.82 80]
+	E: Failed to fetch http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6-dev_2.35-0ubuntu3.4_amd64.deb  404  Not Found [IP: 91.189.91.82 80]
+"
+
+AND when $sudo apt update is run, the following error:
+E: Release file for http://archive.ubuntu.com/ubuntu/dists/jammy-updates/InRelease is not valid yet (invalid for another 2h 54min 42s). Updates for this repository will not be applied.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Try FIX 1: Try checking Ubuntu time using "$ timedatectl" and compare that to Windows time. Sync Windows time, Turn on Auto Sync and Location services. Restart Windows and see if it fixes the issue.
+This did NOT work!
+
+FIXED! : Ref: https://tecadmin.net/setup-time-synchronisation-ntp-server-on-ubuntu-linuxmint/
+Step 1: First remove the broken package "zlib1g-dev"
+		$ sudo apt remove zlib1g-dev
+		$ sudo apt --fix-broken install
+		$ sudo apt --fix-missing install
+		$ sudo apt autoremove  ==> To remove broken packages.
+		$ sudo apt update
+		$ sudo apt upgrade
+
+Step 2: Install ntp: 
+	$ sudo apt-get install ntp
+
+Step 3: Open Linux firewall for NTP:
+	$ sudo ufw allow 123/udp
+	
+Step 4: Restart NTP service:
+	$ sudo systemctl restart ntp
+
+Step 5: Check the time sync status: 
+	$ timedatectl   ==> It should show proper time now!
+
+Ref: https://askubuntu.com/questions/81293/what-is-the-command-to-update-time-and-date-from-internet
+
+Check the time by  $ timedatectl
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Step 6: Restart Ubuntu and log back in. 
+	Now install "zlib1g:amd64" :	
+	$ sudo apt install zlib1g:amd64
+	$ sudo apt update
+	$ sudo apt upgrade
+
+==> and THEN retry installing zlib1g-dev:
+	$ sudo apt install zlib1g-dev
+	$ sudo apt update
+	$ sudo apt upgrade
+
+

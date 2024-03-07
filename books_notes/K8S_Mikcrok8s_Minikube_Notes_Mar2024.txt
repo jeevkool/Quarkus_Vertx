@@ -1,0 +1,272 @@
+===============================================================================
+Mikcrok8s Commands and Notes
+===============================================================================
+
+Ref: Kubectl cheatsheet:  https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
+1. Kubectl Get all pods, services, ==> everything from all namespaces:
+	$ kubectl get all --all-namespaces
+   For microk8s run:  $ microk8s kubectl get all --all-namespaces
+
+2. To get all deployed Pods in the default namespace:
+ 	$ kubectl get pods
+   For microk8s run: $ microk8s kubectl get pods
+
+3. To get all deployed Pods in ALL namespaces:
+	$ kubectl get pods --all-namespaces   OR for microk8s: $ microk8s kubectl get pods --all-namespaces
+   To get all deployed services in ALL namespaces:
+	$ kubectl get services --all-namespaces
+   OR:	$ microk8s kubectl get services --all-namespaces
+
+4. To get all deployed pods, services etc from a given namespace (say, vertxdev):
+	$ kubectl get services --namespace=vertxdev
+	$ kubectl get pods --namespace=vertxdev
+OR for microk8s:
+	$ microk8s kubectl get pods --namespace=vertxdev
+	$ microk8s kubectl get services --namespace=vertxdev
+	
+	$ microk8s kubectl delete services account-vertx-service
+	
+5.	To delete a deployment:
+	$ microk8s kubectl delete -n vertxdev deployment.apps/account-vertx-service
+	$ microk8s kubectl delete -n default deployment deployment.apps/account-vertx-service  ==> specifying the resource type 'deployment' is redundant, and is not necessary
+	
+6.	To delete a service:
+	$ microk8s kubectl delete -n vertxdev service/account-vertx-service
+
+7. List all namespaces:  Ref: https://kodekloud.com/blog/kubectl-create-namespace/
+	kubectl get namespaces
+
+8. To create a new namespace called 'vertxdev' : Ref: https://kodekloud.com/blog/kubectl-create-namespace/
+	kubectl create namespace vertxdev
+
+9. Tail application Logs on Kubernetes:
+Ref: https://signoz.io/blog/kubectl-logs-tail/
+
+	To follow/stream logs:
+	$ microk8s kubectl logs -n vertxdev --follow pod/account-vertx-service-678bd446cd-psfpn
+
+	To tail the latest 'n' ()=10) number of lines and to stream/follow:
+	$ microk8s kubectl logs -n vertxdev -f --tail=10 pod/account-vertx-service-678bd446cd-psfpn 
+
+$ kubectl logs -n vertxdev -f --tail=50 pod/account-vertx-service-678bd446cd-psfpn 
+
+10."Sclaing up Pods" :Kubectl Scale Deployment: The Basics and a Quick Tutorial
+Ref: https://komodor.com/learn/kubectl-scale-deployment-the-basics-and-a-quick-tutorial/
+Example:  $ microk8s kubectl scale -n vertxdev deployment account-vertx-service --replicas=4
+
+kubectl scale -n vertxdev deployment account-vertx-service --replicas=4
+
+
+===============================================================================
+Installation of Docker and Microk8s on Ubuntu:
+===============================================================================
+
+    Step 1: Install Docker on Ubuntu (after GraalVM installation and configs. Ref "Quarkus_Notes_Feb2024.txt"): Ref: https://www.simplilearn.com/tutorials/docker-tutorial/how-to-install-docker-on-ubuntu
+
+
+    $ sudo apt-get update
+    $ sudo apt install docker.io
+
+    Verify using:
+    $ docker --version
+    AND
+    $ sudo docker run hello-world
+
+    To display all the containers pulled, use the following command:
+    $ sudo docker ps -a
+
+    IMPORTANT: To be able to Execute the Docker Command Without Sudo: 
+    First, establish the Docker Group:
+
+    $ sudo groupadd docker
+
+    Next, add the user in the Docker group:
+
+    $ sudo usermod -aG docker $USER
+
+    NEXT : Reboot Ubuntu for the above changes to take effect!!
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    ================================
+    START / STOP Docker daemon:
+        Ref: https://stackoverflow.com/questions/42365336/how-to-stop-docker-under-linux
+
+            $ sudo systemctl stop docker
+            $ sudo systemctl start docker
+
+        If there is no systemctl, or started Docker by 'service' THEN:
+            $ sudo service docker start
+            $ sudo service docker stop
+        ================================
+        
+        Remove stopped Docker containers:
+        Ref: https://middleware.io/blog/docker-cleanup/
+
+        To remove stopped containers:
+            $ docker container rm $(docker container ls -aq) 
+
+
+    STEP 2. Install Microk8s locally: 
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    GOOD Reference! Ref 1: https://linuxconfig.org/install-and-use-microk8s-on-ubuntu
+
+    https://ubuntu.com/tutorials/install-a-local-kubernetes-with-microk8s#1-overview
+
+    $ sudo snap install microk8s --classic
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    NOTE: to uninstall run $ sudo snap remove --purge microk8s
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    AND THEN configure firewall to allow pod-to-pod and pod-to-internet communication::
+
+        $ sudo ufw allow in on cni0 && sudo ufw allow out on cni0
+        $ sudo ufw default allow routed
+
+    AND THEN add the current user to the microk8s group, so there's no need to do sudo every time:
+
+        $ sudo usermod -a -G microk8s $USER
+        $ cd ~/
+        $ mkdir .kube
+        $ sudo chown -R $USER ~/.kube
+
+    NOTE: After installing enable the essential add ons, as follows:
+
+    $ microk8s enable registry
+    $ microk8s enable dns
+    $ microk8s enable dashboard
+    $ microk8s enable storage
+
+
+    ===================================================================
+    NOTE: From running "$ microk8s enable dashboard" 
+    ===================================================================
+        If RBAC is not enabled access the dashboard using the token retrieved with:
+
+        microk8s kubectl describe secret -n kube-system microk8s-dashboard-token
+
+        Use this token in the https login UI of the kubernetes-dashboard service.
+
+        In an RBAC enabled setup (microk8s enable RBAC) you need to create a user with restricted
+        permissions as shown in:
+        https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
+
+    ======================================================
+    DO the below step everytime Micork8s is installed or re-installed! OTHERWISE 
+    ======================================================
+    Copied the default config file Microk8s creates at /var/snap/microk8s/current/credentials/client.config  to  ~/.kube/config  as follows:
+    $ sudo cp /var/snap/microk8s/current/credentials/client.config ~/.kube/config
+
+        NOTE: This file has the Kubernetes API server URL as: https://127.0.0.1:16443
+
+    REF: https://discuss.kubernetes.io/t/where-does-microk8s-store-kubectl-config-file/11032 (for the above)
+
+    ======================================================
+    If this above STEP is not done then the following 'SSL connection' ERROR happens when application deployment is tried:
+    ====================================================
+
+    [ERROR] Failed to execute goal io.quarkus.platform:quarkus-maven-plugin:3.5.0:build (default) on project quarkus-kool-vertx1: Failed to build quarkus application: io.quarkus.builder.BuildException: Build failure: Build failed due to errors
+    [ERROR]         [error]: Build step io.quarkus.kubernetes.deployment.KubernetesDeployer#deploy threw an exception: java.lang.RuntimeException: Although a Kubernetes deployment was requested, it however cannot take place because there was an error during communication with the API Server at 'https://127.0.0.1:16443/'
+    [ERROR]         at io.quarkus.kubernetes.deployment.KubernetesDeploy.doCheck(KubernetesDeploy.java:80)
+    [ERROR] Caused by: io.fabric8.kubernetes.client.KubernetesClientException: An error has occurred.
+    [ERROR] Caused by: java.io.IOException: Failed to create SSL connection
+
+
+    STEP 3: To Stop and Start Microk8s:
+
+    $ microk8s stop
+    $ microk8s start
+
+    STEP 4: View/Verify all running Pods and Services:
+
+    $ microk8s kubectl get all --all-namespaces
+
+    STEP 5: To start the Microk8s Dashboard: 
+
+    $ microk8s dashboard-proxy      ==> Note the Dashboard URL and token to login displayed when this command is run.
+
+    REF (for the above) : https://askubuntu.com/questions/1123996/how-to-access-micro8kss-dashboard-web-ui
+
+        ==========================================================
+        Create the custom namespace for the application in Microk8s before deploying the application:
+        ===================================================================
+        $ microk8s kubectl create namespace vertxdev
+
+
+
+    STEP 6: Application Deployment to Microk8s cluster and testing:
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    DEPLOYMENT Config 1 (JVM image, not -Dnative): service-type=node-port  &&  ingress.expose=true ==> With config properties in application.properties as:
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        quarkus.kubernetes.namespace=vertxdev   ==> Necessary to specify the namespace. (First create one using: $ kubectl create namespace vertxdev )
+
+        quarkus.knative.image-pull-policy=if-not-present
+        quarkus.kubernetes.service-type=node-port
+        quarkus.kubernetes.ingress.expose=true
+        quarkus.container-image.insecure=true  ==> Necessary for registry that is not secured with a login or token.
+
+    $ ./mvnw clean package -DskipTests -Dquarkus.container-image.push=true -Dquarkus.kubernetes.deploy=true
+
+
+        After successfully deploying to Kubernetes cluster as above: Listed all currently running pods, services etc using the command:
+
+    STEP 7: After successfully deploying to Kubernetes cluster, did the following to get host:port to test the service:
+        $ microk8s kubectl get all --all-namespaces
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+===============================================================================
+Minikube Commands and Notes:
+===============================================================================
+1. To start the Minikube node:
+
+	$ minikube start
+
+Note: Do this after starting Docker daemon on Windows.
+
+2. To start the miikube K8S dashboard:
+
+	$ minikube dashboard
+
+3. To list services with their URL and port:
+
+	$ minikube service --all
+
+4. To list a specific service by name:
+
+	$ minikube service <service-name>
+
+Example: $ minikube service account-vertx-service
+
+5. To stop minikube:
+
+	$ minikube stop
+
+6. To delete a deployment:
+	$ kubectl delete -n default deployment account-vertx-service
+
+7. To delete a service:
+	$ kubectl delete services account-vertx-service
+
+8. Start Minikube with 
+
+	$ minikube start --insecure-registry "192.168.65.0/24"    ==> This IP/Port can be obtained from Docker desktop menu: /settings//Resources//Network 
+	$ minikube addons enable metrics-server  ==> ONLY need to run once. To enable metrics server.
+===============================================================================
+
+Installing Minikube:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ref 1: https://minikube.sigs.k8s.io/docs/start/
+
+Ref 2: https://medium.com/@mananu/run-a-kubernetes-cluster-locally-on-windows-c15e685113bb
+
+Ref 3: https://www.geeksforgeeks.org/how-to-set-up-kubernetes-cluster-on-local-machine-using-minikube/
+
+***===> Running Multi-Node K8S clusters locally using Kind:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Ref 4: https://opensource.com/article/20/11/run-kubernetes-locally
+
